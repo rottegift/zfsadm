@@ -364,7 +364,7 @@ if [ "$SHOULD_CONFIGURE" = "yes" -o "$SHOULD_MAKE" = "yes" ] ; then
       sudo mkdir -p "$SPL_DIR"
       cd "$SPL_DIR"/..
       sudo rmdir "$SPL_DIR"
-      sudo git clone git://github.com/zfs-osx/spl
+      sudo git clone git://github.com/zfs-osx/spl.git
       cd spl
       cd ..
       sudo chown -R "$OWNER":staff spl
@@ -377,7 +377,7 @@ if [ "$SHOULD_CONFIGURE" = "yes" -o "$SHOULD_MAKE" = "yes" ] ; then
       sudo mkdir -p "$ZFS_DIR"
       cd "$ZFS_DIR"/..
       sudo rmdir "$ZFS_DIR"
-      sudo git clone git://github.com/zfs-osx/zfs
+      sudo git clone git://github.com/zfs-osx/zfs.git
       cd zfs
       cd ..
       sudo chown -R "$OWNER":staff zfs
