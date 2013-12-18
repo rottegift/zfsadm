@@ -1,21 +1,45 @@
 #!/bin/bash
 set -e
+
+export DSCL=/usr/bin/dscl
+export LOGNAME_CMD=/usr/bin/logname
+export CUT=/usr/bin/cut
+
 #defaults:
-export DEV_DIR="$(dscl . -read /Users/"$(logname)" NFSHomeDirectory | cut -d ' ' -f2)"/Developer
+export DEV_DIR="$($DSCL . -read /Users/"$($LOGNAME_CMD)" NFSHomeDirectory | $CUT -d ' ' -f2)"/Developer
 export INSTALL_DIR="/osxzfs"
-export OWNER="$(logname)"
+export OWNER="$($LOGNAME_CMD)"
 export BRANCH="master"
 export ZFS_BRANCH="default"
 export SPL_BRANCH="default"
 
-if [[ $(/usr/bin/id -u) -ne 0 ]]; then
+export BASH_PATH=/bin/bash
+export CAT=/bin/cat
+export CP=/bin/cp
+export ECHO=/bin/echo
+export MKDIR=/bin/mkdir
+export RM=/bin/rm
+export RMDIR=/bin/rmdir
+export KEXTLOAD=/sbin/kextload
+export KEXTUNLOAD=/sbin/kextunload
+export GIT=/usr/bin/git
+export GREP=/usr/bin/grep
+export ID=/usr/bin/id
+export MAKE=/usr/bin/make
+export PRINTF=/usr/bin/printf
+export RUBY=/usr/bin/ruby
+export SUDO=/usr/bin/sudo
+export CHOWN=/usr/sbin/chown
+export KEXTSTAT=/usr/sbin/kextstat
+
+if [[ $($ID -u) -ne 0 ]]; then
 set -e
-    sudo "$0" "$@"
+    $SUDO "$0" "$@"
     exit
 fi
 set -e
 
-OPTS=$(/usr/bin/ruby - "$@" <<'EndOfRuby'
+OPTS=$($RUBY - "$@" <<'EndOfRuby'
 require 'getoptlong'
 
 devdir=ENV['DEV_DIR']
@@ -94,18 +118,18 @@ puts "-" + simpleoptsstr + \
 EndOfRuby
 )
 
-(echo set -- "$OPTS" ; cat <<'EndOfBash'
+($ECHO set -- "$OPTS" ; $CAT <<'EndOfBash'
 set -e
 # DEBUG_
-# echo "arg0 $0"
-# echo "arg1 $1"
-# echo "arg2 $2"
-# echo "arg3 $3"
-# echo "arg4 $4"
-# echo "arg5 $5"
-# echo "arg6 $6"
-# echo "arg7 $7"
-# echo "arg8 $8"
+# $ECHO "arg0 $0"
+# $ECHO "arg1 $1"
+# $ECHO "arg2 $2"
+# $ECHO "arg3 $3"
+# $ECHO "arg4 $4"
+# $ECHO "arg5 $5"
+# $ECHO "arg6 $6"
+# $ECHO "arg7 $7"
+# $ECHO "arg8 $8"
 # _DEBUG
 
 DEV_DIR="$2"
@@ -116,10 +140,10 @@ ZFS_BRANCH="$6"
 SPL_BRANCH="$7"
 
 if [ x"${INSTALL_DIR:0:1}" = x"-" ] ; then
-   printf "Install directory path cannot start with \"-\"\n"
+   $PRINTF "Install directory path cannot start with \"-\"\n"
    exit
 elif [ x"$INSTALL_DIR" = x"/" ] ; then
-   printf "Install directory path cannot be \"/\"\n"
+   $PRINTF "Install directory path cannot be \"/\"\n"
    exit
 fi
 
@@ -136,13 +160,13 @@ SPL_DIR="$DEV_DIR"/spl
 
 if [ -d "$ZFS_DIR" ] ; then
     set +e
-    CURRENT_ZFS_BRANCH="$(git --git-dir="$ZFS_DIR"/.git rev-parse --abbrev-ref HEAD)"
+    CURRENT_ZFS_BRANCH="$($GIT --git-dir="$ZFS_DIR"/.git rev-parse --abbrev-ref HEAD)"
     set -e
 fi
 
 if [ -d "$SPL_DIR" ] ; then
     set +e
-    CURRENT_SPL_BRANCH="$(git --git-dir="$SPL_DIR"/.git rev-parse --abbrev-ref HEAD)"
+    CURRENT_SPL_BRANCH="$($GIT --git-dir="$SPL_DIR"/.git rev-parse --abbrev-ref HEAD)"
     set -e
 fi
 
@@ -176,7 +200,7 @@ SHOULD_INSTALL="no"
 while getopts "bzslukcmnhe" opt; do
   case $opt in
     b)
-      #echo "-b was triggered!" >&2
+      #$ECHO "-b was triggered!" >&2
          if [ "$ZFS_BRANCH_MATCHES_CURRENT_ZFS_BRANCH" = "no" ] ; then
             SHOULD_SWITCH_ZFS_BRANCH="yes"
          fi
@@ -185,37 +209,37 @@ while getopts "bzslukcmnhe" opt; do
          fi
       ;;
     z)
-      #echo "-z was triggered!" >&2
+      #$ECHO "-z was triggered!" >&2
          if [ "$ZFS_BRANCH_MATCHES_CURRENT_ZFS_BRANCH" = "no" ] ; then
             SHOULD_SWITCH_ZFS_BRANCH="yes"
          fi
       ;;
     s)
-      #echo "-s was triggered!" >&2
+      #$ECHO "-s was triggered!" >&2
          if [ "$SPL_BRANCH_MATCHES_CURRENT_SPL_BRANCH" = "no" ] ; then
             SHOULD_SWITCH_SPL_BRANCH="yes"
          fi
       ;;
     l)
-      #echo "-l was triggered!" >&2
+      #$ECHO "-l was triggered!" >&2
       SHOULD_INSTALL="yes"
       SHOULD_LOAD="yes"
       ;;
     u)
-      #echo "-u was triggered!" >&2
+      #$ECHO "-u was triggered!" >&2
       SHOULD_UNLOAD="yes"
       SHOULD_LOAD="no"
       SHOULD_CONFIGURE="no"
       SHOULD_MAKE="no"
       ;;
     k)
-      #echo "-k was triggered!" >&2
+      #$ECHO "-k was triggered!" >&2
       MUST_SKIP_CONFIGURE_AND_MAKE="yes"
       SHOULD_INSTALL="yes"
       SHOULD_LOAD="yes"
       ;;
     c)
-      #echo "-c was triggered!" >&2
+      #$ECHO "-c was triggered!" >&2
          SHOULD_CONFIGURE="yes"
          SHOULD_MAKE="no"
          if [ "$ONE_OF_CONFIGURE_AND_MAKE_SPECIFIED" = "yes" ] ; then
@@ -224,7 +248,7 @@ while getopts "bzslukcmnhe" opt; do
          ONE_OF_CONFIGURE_AND_MAKE_SPECIFIED="yes"
       ;;
     m)
-      #echo "-m was triggered!" >&2
+      #$ECHO "-m was triggered!" >&2
          SHOULD_MAKE="yes"
          SHOULD_CONFIGURE="no"
          if [ "$ONE_OF_CONFIGURE_AND_MAKE_SPECIFIED" = "yes" ] ; then
@@ -233,19 +257,19 @@ while getopts "bzslukcmnhe" opt; do
          ONE_OF_CONFIGURE_AND_MAKE_SPECIFIED="yes"
       ;;
     n)
-      #echo "-n was triggered!" >&2
+      #$ECHO "-n was triggered!" >&2
       DRY_RUN="yes"
       ;;
     h)
-      #echo "-h was triggered!" >&2
+      #$ECHO "-h was triggered!" >&2
       DISPLAY_HELP="yes"
       ;;
     e)
-      #echo "-e was triggered!" >&2
+      #$ECHO "-e was triggered!" >&2
       RUBY_OPTION_PARSING_ERROR="yes"
       ;;
     \?)
-      echo "Invalid option: -$OPTARG" >&2
+      $ECHO "Invalid option: -$OPTARG" >&2
       ;;
   esac
 done
@@ -290,64 +314,64 @@ else
    BRANCH_CHANGE_STATUS="no change"
 fi
 
-printf "Configuration:\n"
-printf "       dev dir = %s\n" "$DEV_DIR"
-printf "   install dir = %s\n" "$INSTALL_DIR"
-printf "  source owner = %s\n" "$OWNER"
-printf " branch status = %s\n" "$BRANCH_CHANGE_STATUS"
-printf "    zfs branch = %s\n" "$ZFS_BRANCH_CHANGE_STATUS"
-printf "    spl branch = %s\n" "$SPL_BRANCH_CHANGE_STATUS"
-printf "    load kexts = %s\n" "$SHOULD_LOAD"
-printf "  unload kexts = %s\n" "$SHOULD_UNLOAD"
-printf "    kexts only = %s\n" "$MUST_SKIP_CONFIGURE_AND_MAKE"
-printf " run configure = %s\n" "$SHOULD_CONFIGURE"
-printf "      run make = %s\n" "$SHOULD_MAKE"
-printf " install kexts = %s\n" "$SHOULD_INSTALL"
-printf "       spl dir = %s\n" "$SPL_DIR"
-printf "       zfs dir = %s\n" "$ZFS_DIR"
-printf "  spl kext dir = %s\n" "$SK"
-printf "  zfs kext dir = %s\n" "$ZK"
-printf "   install dir = %s\n" "$INSTALL_DIR"
+$PRINTF "Configuration:\n"
+$PRINTF "       dev dir = %s\n" "$DEV_DIR"
+$PRINTF "   install dir = %s\n" "$INSTALL_DIR"
+$PRINTF "  source owner = %s\n" "$OWNER"
+$PRINTF " branch status = %s\n" "$BRANCH_CHANGE_STATUS"
+$PRINTF "    zfs branch = %s\n" "$ZFS_BRANCH_CHANGE_STATUS"
+$PRINTF "    spl branch = %s\n" "$SPL_BRANCH_CHANGE_STATUS"
+$PRINTF "    load kexts = %s\n" "$SHOULD_LOAD"
+$PRINTF "  unload kexts = %s\n" "$SHOULD_UNLOAD"
+$PRINTF "    kexts only = %s\n" "$MUST_SKIP_CONFIGURE_AND_MAKE"
+$PRINTF " run configure = %s\n" "$SHOULD_CONFIGURE"
+$PRINTF "      run make = %s\n" "$SHOULD_MAKE"
+$PRINTF " install kexts = %s\n" "$SHOULD_INSTALL"
+$PRINTF "       spl dir = %s\n" "$SPL_DIR"
+$PRINTF "       zfs dir = %s\n" "$ZFS_DIR"
+$PRINTF "  spl kext dir = %s\n" "$SK"
+$PRINTF "  zfs kext dir = %s\n" "$ZK"
+$PRINTF "   install dir = %s\n" "$INSTALL_DIR"
 
 if [ "$RUBY_OPTION_PARSING_ERROR" = "yes" ] ; then
-   printf "Error parsing your options. Perhaps try --help.\n"
+   $PRINTF "Error parsing your options. Perhaps try --help.\n"
    exit 1
 fi
 
 if [ "$DISPLAY_HELP" = "yes" ] ; then
-   printf " %s\t\t%s\n" "Short options:" "Long options:"
-   printf "\t%s\t\t\t%s\n" '-d' '--dev-dir'
-   printf "\t%s\t\t\t%s\n" '-i' '--install-dir'
-   printf "\t%s\t\t\t%s\n" '-o' '--owner'
-   printf "\t%s\t\t\t%s\n" '-b' '--branch'
-   printf "\t%s\t\t\t%s\n" '-z' '--zfs-branch'
-   printf "\t%s\t\t\t%s\n" '-s' '--spl-branch'
-   printf "\t%s\t\t\t%s\n" '-l' '--load'
-   printf "\t%s\t\t\t%s\n" '-u' '--unload'
-   printf "\t%s\t\t\t%s\n" '-k' '--kexts-only'
-   printf "\t%s\t\t\t%s\n" '-c' '--configure'
-   printf "\t%s\t\t\t%s\n" '-m' '--make'
-   printf "\t%s\t\t\t%s\n" '-n' '--dry-run'
-   printf "\t%s\t\t\t%s\n" '-h' '--help'
+   $PRINTF " %s\t\t%s\n" "Short options:" "Long options:"
+   $PRINTF "\t%s\t\t\t%s\n" '-d' '--dev-dir'
+   $PRINTF "\t%s\t\t\t%s\n" '-i' '--install-dir'
+   $PRINTF "\t%s\t\t\t%s\n" '-o' '--owner'
+   $PRINTF "\t%s\t\t\t%s\n" '-b' '--branch'
+   $PRINTF "\t%s\t\t\t%s\n" '-z' '--zfs-branch'
+   $PRINTF "\t%s\t\t\t%s\n" '-s' '--spl-branch'
+   $PRINTF "\t%s\t\t\t%s\n" '-l' '--load'
+   $PRINTF "\t%s\t\t\t%s\n" '-u' '--unload'
+   $PRINTF "\t%s\t\t\t%s\n" '-k' '--kexts-only'
+   $PRINTF "\t%s\t\t\t%s\n" '-c' '--configure'
+   $PRINTF "\t%s\t\t\t%s\n" '-m' '--make'
+   $PRINTF "\t%s\t\t\t%s\n" '-n' '--dry-run'
+   $PRINTF "\t%s\t\t\t%s\n" '-h' '--help'
    exit 2
 fi
 
 if [ "$DRY_RUN" = "yes" ] ; then
-   printf "Dry run. Exiting.\n"
+   $PRINTF "Dry run. Exiting.\n"
    exit 3
 fi
 
 if [ "$SHOULD_UNLOAD" = "yes" ] ; then
-   if [ $(kextstat -b net.lundman.zfs | wc -l) -gt 1 ] ; then
-      printf "\nUnloading zfs.kext...\n"
-      sudo kextunload -b net.lundman.zfs
+   if [ $($KEXTSTAT -b net.lundman.zfs | wc -l) -gt 1 ] ; then
+      $PRINTF "\nUnloading zfs.kext...\n"
+      $SUDO $KEXTUNLOAD -b net.lundman.zfs
    fi
-   if [ $(kextstat -b net.lundman.spl | wc -l) -gt 1 ] ; then
-      printf "\nUnloading spl.kext...\n"
-      sudo kextunload -b net.lundman.spl
+   if [ $($KEXTSTAT -b net.lundman.spl | wc -l) -gt 1 ] ; then
+      $PRINTF "\nUnloading spl.kext...\n"
+      $SUDO $KEXTUNLOAD -b net.lundman.spl
    fi
    set +e
-   sudo kextstat | grep lundman
+   $SUDO $KEXTSTAT | $GREP lundman
    set -e
 fi
 
@@ -357,59 +381,59 @@ fi
 
 if [ "$SHOULD_CONFIGURE" = "yes" -o "$SHOULD_MAKE" = "yes" ] ; then
    if [ ! -d "$DEV_DIR" ] ; then
-      sudo mkdir "$DEV_DIR"
-      sudo chown "$OWNER":staff "$DEV_DIR"
+      $SUDO $MKDIR "$DEV_DIR"
+      $SUDO $CHOWN "$OWNER":staff "$DEV_DIR"
    fi
    if [ ! -d "$SPL_DIR" ] ; then
-      sudo mkdir -p "$SPL_DIR"
+      $SUDO $MKDIR -p "$SPL_DIR"
       cd "$SPL_DIR"/..
-      sudo rmdir "$SPL_DIR"
-      sudo git clone git://github.com/zfs-osx/spl.git
+      $SUDO $RMDIR "$SPL_DIR"
+      $SUDO $GIT clone git://github.com/zfs-osx/spl.git
       cd spl
       cd ..
-      sudo chown -R "$OWNER":staff spl
+      $SUDO $CHOWN -R "$OWNER":staff spl
    else
-      sudo chown -R "$OWNER":staff "$SPL_DIR"
+      $SUDO $CHOWN -R "$OWNER":staff "$SPL_DIR"
       cd "$SPL_DIR"
-      sudo -u "$OWNER" git pull
+      $SUDO -u "$OWNER" $GIT pull
    fi
    if [ ! -d "$ZFS_DIR" ] ; then
-      sudo mkdir -p "$ZFS_DIR"
+      $SUDO $MKDIR -p "$ZFS_DIR"
       cd "$ZFS_DIR"/..
-      sudo rmdir "$ZFS_DIR"
-      sudo git clone git://github.com/zfs-osx/zfs.git
+      $SUDO $RMDIR "$ZFS_DIR"
+      $SUDO $GIT clone git://github.com/zfs-osx/zfs.git
       cd zfs
       cd ..
-      sudo chown -R "$OWNER":staff zfs
+      $SUDO $CHOWN -R "$OWNER":staff zfs
    else
-      sudo chown -R "$OWNER":staff "$ZFS_DIR"
+      $SUDO $CHOWN -R "$OWNER":staff "$ZFS_DIR"
       cd "$ZFS_DIR"
-      sudo -u "$OWNER" git pull
+      $SUDO -u "$OWNER" $GIT pull
    fi
 fi
 
 SWITCHED_SPL_BRANCH="no"
 if [ "$SHOULD_SWITCH_SPL_BRANCH" = "yes" ] ; then
 
-   CURRENT_SPL_BRANCH="$(git --git-dir="$DEV_DIR"/spl/.git rev-parse --abbrev-ref HEAD)"
+   CURRENT_SPL_BRANCH="$($GIT --git-dir="$DEV_DIR"/spl/.git rev-parse --abbrev-ref HEAD)"
 
    SPL_BRANCH_MATCHES="no"
 
    if [ x"$CURRENT_SPL_BRANCH" = x"$SPL_BRANCH" ] ; then
       SPL_BRANCH_MATCHES="yes"
-      printf "spl branch already matches.\n"
+      $PRINTF "spl branch already matches.\n"
    else
-      printf "spl branch does not match.\n"
+      $PRINTF "spl branch does not match.\n"
    fi
    if [ "$SPL_BRANCH_MATCHES" = "no" ] ; then
       cd "$SPL_DIR"
-      printf "Trying to switch spl branch ...\n"
-      sudo -u "$OWNER" git checkout "$SPL_BRANCH"
+      $PRINTF "Trying to switch spl branch ...\n"
+      $SUDO -u "$OWNER" $GIT checkout "$SPL_BRANCH"
       if [ $? -eq 0 ] ; then
          SWITCHED_SPL_BRANCH="yes"
-         printf "Switched spl branch.\n"
+         $PRINTF "Switched spl branch.\n"
       else
-         printf "Did not switch spl branch.\n"
+         $PRINTF "Did not switch spl branch.\n"
       fi
    fi
 fi
@@ -417,83 +441,83 @@ fi
 SWITCHED_ZFS_BRANCH="no"
 if [ "$SHOULD_SWITCH_ZFS_BRANCH" = "yes" ] ; then
 
-   CURRENT_ZFS_BRANCH="$(git --git-dir="$DEV_DIR"/zfs/.git rev-parse --abbrev-ref HEAD)"
+   CURRENT_ZFS_BRANCH="$($GIT --git-dir="$DEV_DIR"/zfs/.git rev-parse --abbrev-ref HEAD)"
 
    ZFS_BRANCH_MATCHES="no"
 
    if [ x"$CURRENT_ZFS_BRANCH" = x"$ZFS_BRANCH" ] ; then
       ZFS_BRANCH_MATCHES="yes"
-      printf "zfs branch already matches.\n"
+      $PRINTF "zfs branch already matches.\n"
    else
-      printf "zfs branch does not match.\n"
+      $PRINTF "zfs branch does not match.\n"
    fi
    if [ "$ZFS_BRANCH_MATCHES" = "no" ] ; then
       cd "$ZFS_DIR"
-      printf "Trying to switch zfs branch ...\n"
-      sudo -u "$OWNER" git checkout "$ZFS_BRANCH"
+      $PRINTF "Trying to switch zfs branch ...\n"
+      $SUDO -u "$OWNER" $GIT checkout "$ZFS_BRANCH"
       if [ $? -eq 0 ] ; then
          SWITCHED_ZFS_BRANCH="yes"
-         printf "Switched zfs branch.\n"
+         $PRINTF "Switched zfs branch.\n"
       else
-         printf "Did not switch zfs branch.\n"
+         $PRINTF "Did not switch zfs branch.\n"
       fi
    fi
 fi
 
 if [ "$SHOULD_CONFIGURE" = "yes" ] ; then
    cd "$SPL_DIR"
-   sudo -u "$OWNER" /bin/bash "$SPL_DIR"/autogen.sh
-   sudo -u "$OWNER" /bin/bash "$SPL_DIR"/configure CC=clang CXX=clang++
+   $SUDO -u "$OWNER" $BASH_PATH "$SPL_DIR"/autogen.sh
+   $SUDO -u "$OWNER" $BASH_PATH "$SPL_DIR"/configure CC=clang CXX=clang++
    cd "$ZFS_DIR"
-   sudo -u "$OWNER" /bin/bash "$ZFS_DIR"/autogen.sh
-   sudo -u "$OWNER" /bin/bash "$ZFS_DIR"/configure CC=clang CXX=clang++ --with-spl="$SPL_DIR"
+   $SUDO -u "$OWNER" $BASH_PATH "$ZFS_DIR"/autogen.sh
+   $SUDO -u "$OWNER" $BASH_PATH "$ZFS_DIR"/configure CC=clang CXX=clang++ --with-spl="$SPL_DIR"
 fi
 
-my_make() {
-   sudo -u "$OWNER" /usr/bin/make -j 8 V=1
+make_parallelized_as_owner() {
+   $SUDO -u "$OWNER" $MAKE -j 8
 }
 
 if [ "$SHOULD_MAKE" = "yes" ] ; then
    cd "$SPL_DIR"
-   my_make
+   make_parallelized_as_owner
    cd "$ZFS_DIR"
    set +e
-   for i in {1..7} ; do my_make; if [ $? -eq 0 ] ; then break ; fi ; done
+   for i in {1..7} ; do make_parallelized_as_owner; if [ $? -eq 0 ] ; then break ; fi ; done
    set -e
 fi
 
 
 if [ "$SHOULD_CONFIGURE" = "no" ] ; then
-   printf "\nDid not run configure.\n"
+   $PRINTF "\nDid not run configure.\n"
 fi
 
 if [ "$SHOULD_MAKE" = "no" ] ; then
-   printf "\nDid not run make.\n"
+   $PRINTF "\nDid not run make.\n"
 fi
 
 if [ "$SHOULD_INSTALL" = "yes" ] ; then
-   sudo rm -rf "$SK"
-   sudo rm -rf "$ZK"
-   sudo mkdir -p "$INSTALL_DIR"
-   sudo cp -r "$SPL_DIR"/module/spl/spl.kext "$INSTALL_DIR"
-   sudo cp -r "$ZFS_DIR"/module/zfs/zfs.kext "$INSTALL_DIR"
-   sudo chown -R root:wheel "$SK"
-   sudo chown -R root:wheel "$ZK"
+   $SUDO $RM -rf "$SK"
+   $SUDO $RM -rf "$ZK"
+   $SUDO $MKDIR -p "$INSTALL_DIR"
+   $SUDO $CP -r "$SPL_DIR"/module/spl/spl.kext "$INSTALL_DIR"
+   $SUDO $CP -r "$ZFS_DIR"/module/zfs/zfs.kext "$INSTALL_DIR"
+   $SUDO $CHOWN -R root:wheel "$SK"
+   $SUDO $CHOWN -R root:wheel "$ZK"
 fi
 
 if [ "$SHOULD_LOAD" = "yes" ] ; then
-   printf "\nLoading spl.kext...\n"
-   sudo kextload "$SK"
-   printf "\nLoading zfs.kext...\n\n"
-   sudo kextload -d "$SK" "$ZK" 
+   $PRINTF "\nLoading spl.kext...\n"
+   $SUDO $KEXTLOAD "$SK"
+   $PRINTF "\nLoading zfs.kext...\n\n"
+   $SUDO $KEXTLOAD -d "$SK" "$ZK" 
    set +e
-   sudo kextstat | grep lundman
+   $SUDO $KEXTSTAT | $GREP lundman
    set -e
 else
-   printf "\nYou need to load the kexts manually or specify -l or --load\n\n"
+   $PRINTF "\nYou need to load the kexts manually or specify -l or --load\n\n"
 fi
 
 EndOfBash
-) | /bin/bash
+) | $BASH_PATH
 
 exit 0
