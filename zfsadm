@@ -475,9 +475,9 @@ fi
 
 if [ "$SHOULD_MAKE" = "yes" ] ; then
    cd "$SPL_DIR"
-   $SUDO -u "$OWNER" $MAKE -j 4
+   $SUDO -u "$OWNER" $MAKE -j
    cd "$ZFS_DIR"
-   $SUDO -u "$OWNER" $MAKE -j 4
+   $SUDO -u "$OWNER" $MAKE -j
 fi
 
 if [ "$SHOULD_CONFIGURE" = "no" ] ; then
