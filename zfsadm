@@ -473,19 +473,12 @@ if [ "$SHOULD_CONFIGURE" = "yes" ] ; then
    $SUDO -u "$OWNER" $BASH_PATH "$ZFS_DIR"/configure CC=clang CXX=clang++ --with-spl="$SPL_DIR"
 fi
 
-make_parallelized_as_owner() {
-   $SUDO -u "$OWNER" $MAKE -j 8
-}
-
 if [ "$SHOULD_MAKE" = "yes" ] ; then
    cd "$SPL_DIR"
-   for i in {1..7} ; do make_parallelized_as_owner; if [ $? -eq 0 ] ; then break ; fi ; done
+   $SUDO -u "$OWNER" $MAKE -j 4
    cd "$ZFS_DIR"
-   set +e
-   for i in {1..7} ; do make_parallelized_as_owner; if [ $? -eq 0 ] ; then break ; fi ; done
-   set -e
+   $SUDO -u "$OWNER" $MAKE -j 4
 fi
-
 
 if [ "$SHOULD_CONFIGURE" = "no" ] ; then
    $PRINTF "\nDid not run configure.\n"
