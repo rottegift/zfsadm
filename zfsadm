@@ -479,7 +479,7 @@ make_parallelized_as_owner() {
 
 if [ "$SHOULD_MAKE" = "yes" ] ; then
    cd "$SPL_DIR"
-   make_parallelized_as_owner
+   for i in {1..7} ; do make_parallelized_as_owner; if [ $? -eq 0 ] ; then break ; fi ; done
    cd "$ZFS_DIR"
    set +e
    for i in {1..7} ; do make_parallelized_as_owner; if [ $? -eq 0 ] ; then break ; fi ; done
