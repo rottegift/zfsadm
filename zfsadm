@@ -1,9 +1,9 @@
 #!/bin/bash
 set -e
 #defaults:
-export DEV_DIR="/Users/$SUDO_USER/Developer"
+export DEV_DIR="$(dscl . -read /Users/"$(logname)" NFSHomeDirectory | cut -d ' ' -f2)"/Developer
 export INSTALL_DIR="/osxzfs"
-export OWNER="$SUDO_USER"
+export OWNER="$(logname)"
 export BRANCH="master"
 export ZFS_BRANCH="default"
 export SPL_BRANCH="default"
@@ -364,7 +364,7 @@ if [ "$SHOULD_CONFIGURE" = "yes" -o "$SHOULD_MAKE" = "yes" ] ; then
       sudo mkdir -p "$SPL_DIR"
       cd "$SPL_DIR"/..
       sudo rmdir "$SPL_DIR"
-      sudo git clone git://github.com/zfs-osx/spl.git
+      sudo git clone git://github.com/zfs-osx/spl
       cd spl
       cd ..
       sudo chown -R "$OWNER":staff spl
@@ -377,7 +377,7 @@ if [ "$SHOULD_CONFIGURE" = "yes" -o "$SHOULD_MAKE" = "yes" ] ; then
       sudo mkdir -p "$ZFS_DIR"
       cd "$ZFS_DIR"/..
       sudo rmdir "$ZFS_DIR"
-      sudo git clone git://github.com/zfs-osx/zfs.git
+      sudo git clone git://github.com/zfs-osx/zfs
       cd zfs
       cd ..
       sudo chown -R "$OWNER":staff zfs
@@ -449,12 +449,19 @@ if [ "$SHOULD_CONFIGURE" = "yes" ] ; then
    sudo -u "$OWNER" /bin/bash "$ZFS_DIR"/configure CC=clang CXX=clang++ --with-spl="$SPL_DIR"
 fi
 
+my_make() {
+   sudo -u "$OWNER" /usr/bin/make -j 8 V=1
+}
+
 if [ "$SHOULD_MAKE" = "yes" ] ; then
    cd "$SPL_DIR"
-   sudo -u "$OWNER" /usr/bin/make
+   my_make
    cd "$ZFS_DIR"
-   sudo -u "$OWNER" /usr/bin/make
+   set +e
+   for i in {1..7} ; do my_make; if [ $? -eq 0 ] ; then break ; fi ; done
+   set -e
 fi
+
 
 if [ "$SHOULD_CONFIGURE" = "no" ] ; then
    printf "\nDid not run configure.\n"
