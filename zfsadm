@@ -21,7 +21,7 @@ export CUT=/usr/bin/cut
 #defaults:
 export HOME_DIR="$($DSCL . -read /Users/"$($LOGNAME_CMD)" NFSHomeDirectory | $CUT -d ' ' -f2)"
 export DEV_DIR="$HOME_DIR"/Developer
-export INSTALL_DIR="$HOME_DIR/Library/Extensions"
+export INSTALL_DIR="$HOME_DIR"/Library/Extensions
 export OWNER="$($LOGNAME_CMD)"
 export BRANCH="master"
 export ZFS_BRANCH="default"
