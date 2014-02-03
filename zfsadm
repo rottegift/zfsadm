@@ -3,7 +3,7 @@
 # 
 # Suggested workflows:
 # 1) Run zfsadm with no options, in order to fetch and build ZFS.
-# 2) Then, you may do one of these
+# 2) Then, you may do one of these:
 #    2a) Run 'zfsadm -k' to manually load the resulting suite, manipulated via
 #        'sudo ./cmd.sh zfs ...', 'sudo ./cmd.sh zpool ...', etc.
 #    2b) Install the resulting suite using 'sudo make install' in each of their
