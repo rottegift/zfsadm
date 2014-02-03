@@ -1,4 +1,22 @@
 #!/bin/bash
+# Originated by ilovezfs, licensed under GPLv3
+# 
+# Suggested workflows:
+# 1) Save this script as ~/bin/zfsadm and add ~/bin to your PATH
+# 2) Run zfsadm with no options, in order to fetch and build ZFS.
+# 3) Then, you may do one of these
+#    3a) Run 'zfsadm -k' to manually load the resulting suite, manipulated via
+#        'cmd.sh' in this manner:
+#            cd ~/Developer/zfs
+#            sudo ./cmd.sh zfs ...
+#            sudo ./cmd.sh zpool ...
+#            sudo ./cmd.sh zdb ...
+#            etc.
+#
+#    3b) Install the resulting suite using 'sudo make install' in each of their
+#        respective directories: ~/Developer/spl and ~/Developer/zfs.
+#        Most notably, this targets /System/Library/Extensions and /usr/local/sbin.
+#        Add /usr/local/sbin to your PATH.
 set -e
 
 export DSCL=/usr/bin/dscl
@@ -6,8 +24,9 @@ export LOGNAME_CMD=/usr/bin/logname
 export CUT=/usr/bin/cut
 
 #defaults:
-export DEV_DIR="$($DSCL . -read /Users/"$($LOGNAME_CMD)" NFSHomeDirectory | $CUT -d ' ' -f2)"/Developer
-export INSTALL_DIR="/osxzfs"
+export HOME_DIR="$($DSCL . -read /Users/"$($LOGNAME_CMD)" NFSHomeDirectory | $CUT -d ' ' -f2)"
+export DEV_DIR="$HOME_DIR"/Developer
+export INSTALL_DIR="$HOME_DIR/Library/Extensions"
 export OWNER="$($LOGNAME_CMD)"
 export BRANCH="master"
 export ZFS_BRANCH="default"
