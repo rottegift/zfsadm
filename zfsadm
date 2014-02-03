@@ -5,17 +5,13 @@
 # 1) Run zfsadm with no options, in order to fetch and build ZFS.
 # 2) Then, you may do one of these
 #    2a) Run 'zfsadm -k' to manually load the resulting suite, manipulated via
-#        'cmd.sh' in this manner:
-#            cd ~/Developer/zfs
-#            sudo ./cmd.sh zfs ...
-#            sudo ./cmd.sh zpool ...
-#            sudo ./cmd.sh zdb ...
-#            etc.
-#
+#        'sudo ./cmd.sh zfs ...', 'sudo ./cmd.sh zpool ...', etc.
 #    2b) Install the resulting suite using 'sudo make install' in each of their
-#        respective directories: ~/Developer/spl and ~/Developer/zfs.
-#        Most notably, this targets /System/Library/Extensions and /usr/local/sbin.
-#        Add /usr/local/sbin to your PATH.
+#        respective directories: ~/Developer/spl and ~/Developer/zfs. Most notably,
+#        this targets '/System/Library/Extensions' and '/usr/local/sbin'. Then you
+#        may add /usr/local/sbin to your PATH, and invoke the binaries directly,
+#        'zpool ...', 'zfs ...', etc.
+
 set -e
 
 export DSCL=/usr/bin/dscl
