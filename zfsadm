@@ -402,7 +402,7 @@ if [ "$SHOULD_CONFIGURE" = "yes" -o "$SHOULD_MAKE" = "yes" ] ; then
       $SUDO $MKDIR -p "$SPL_DIR"
       cd "$SPL_DIR"/..
       $SUDO $RMDIR "$SPL_DIR"
-      $SUDO $GIT clone git://github.com/zfs-osx/spl.git
+      $SUDO $GIT clone git://github.com/openzfsonosx/spl.git
       cd spl
       cd ..
       $SUDO $CHOWN -R "$OWNER":staff spl
@@ -415,7 +415,7 @@ if [ "$SHOULD_CONFIGURE" = "yes" -o "$SHOULD_MAKE" = "yes" ] ; then
       $SUDO $MKDIR -p "$ZFS_DIR"
       cd "$ZFS_DIR"/..
       $SUDO $RMDIR "$ZFS_DIR"
-      $SUDO $GIT clone git://github.com/zfs-osx/zfs.git
+      $SUDO $GIT clone git://github.com/openzfsonosx/zfs.git
       cd zfs
       cd ..
       $SUDO $CHOWN -R "$OWNER":staff zfs
