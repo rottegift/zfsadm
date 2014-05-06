@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # zfsadm, originated by ilovezfs, licensed under GPLv3
 # 
 # Suggested workflows:
@@ -14,9 +14,9 @@
 
 set -e
 
-export DSCL=/usr/bin/dscl
-export LOGNAME_CMD=/usr/bin/logname
-export CUT=/usr/bin/cut
+export DSCL=dscl
+export LOGNAME_CMD=logname
+export CUT=cut
 
 #defaults:
 export HOME_DIR="$($DSCL . -read /Users/"$($LOGNAME_CMD)" NFSHomeDirectory |\
@@ -28,24 +28,24 @@ export BRANCH="master"
 export ZFS_BRANCH="default"
 export SPL_BRANCH="default"
 
-export BASH_PATH=/bin/bash
-export CAT=/bin/cat
-export CP=/bin/cp
-export ECHO=/bin/echo
-export MKDIR=/bin/mkdir
-export RM=/bin/rm
-export RMDIR=/bin/rmdir
-export KEXTLOAD=/sbin/kextload
-export KEXTUNLOAD=/sbin/kextunload
-export GIT=/usr/bin/git
-export GREP=/usr/bin/grep
-export ID=/usr/bin/id
-export MAKE=/usr/bin/make
-export PRINTF=/usr/bin/printf
-export RUBY=/usr/bin/ruby
-export SUDO=/usr/bin/sudo
-export CHOWN=/usr/sbin/chown
-export KEXTSTAT=/usr/sbin/kextstat
+export BASH_PATH=bash
+export CAT=cat
+export CP=cp
+export ECHO=echo
+export MKDIR=mkdir
+export RM=rm
+export RMDIR=rmdir
+export KEXTLOAD=kextload
+export KEXTUNLOAD=kextunload
+export GIT=git
+export GREP=grep
+export ID=id
+export MAKE=make
+export PRINTF=printf
+export RUBY=ruby
+export SUDO=sudo
+export CHOWN=chown
+export KEXTSTAT=kextstat
 
 if [[ $($ID -u) -ne 0 ]]; then
 set -e
@@ -499,11 +499,12 @@ if [ "$SHOULD_CONFIGURE" = "yes" ] ; then
 	cd "$SPL_DIR"
 	$SUDO -u "$OWNER" $BASH_PATH "$SPL_DIR"/autogen.sh
 	$SUDO -u "$OWNER" $BASH_PATH "$SPL_DIR"/configure CC=clang CXX=clang++\
-	    CFLAGS=-g
+	    CFLAGS="-g -Wtautological-constant-out-of-range-compare"
 	cd "$ZFS_DIR"
 	$SUDO -u "$OWNER" $BASH_PATH "$ZFS_DIR"/autogen.sh
 	$SUDO -u "$OWNER" $BASH_PATH "$ZFS_DIR"/configure CC=clang CXX=clang++\
-	    CFLAGS=-g --with-spl="$SPL_DIR"
+	    CFLAGS="-g -Wno-tautological-constant-out-of-range-compare"\
+	    --with-spl="$SPL_DIR"
 fi
 
 if [ "$SHOULD_MAKE" = "yes" ] ; then
