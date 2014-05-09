@@ -22,7 +22,7 @@ export CUT=cut
 export HOME_DIR="$($DSCL . -read /Users/"$($LOGNAME_CMD)" NFSHomeDirectory |\
     $CUT -d ' ' -f2)"
 export DEV_DIR="$HOME_DIR"/Developer
-export INSTALL_DIR="$HOME_DIR"/Library/Extensions
+export INSTALL_DIR=/System/Library/Extensions
 export OWNER="$($LOGNAME_CMD)"
 export BRANCH="master"
 export ZFS_BRANCH="default"
@@ -541,7 +541,10 @@ then
 	$SUDO -u "$OWNER" $BASH_PATH "$ZFS_DIR"/autogen.sh
 	$SUDO -u "$OWNER" $BASH_PATH "$ZFS_DIR"/configure CC=clang CXX=clang++\
 	    CFLAGS="-g -Wno-tautological-constant-out-of-range-compare"\
-	    --with-spl="$SPL_DIR"
+	    --prefix=/usr\
+	    --sysconfdir=/etc\
+	    --with-spl="$SPL_DIR"\
+	    --with-kernel-modprefix="$INSTALL_DIR"
 fi
 
 if [ "$SHOULD_MAKE" = "yes" ]
