@@ -47,7 +47,8 @@ export SUDO=sudo
 export CHOWN=chown
 export KEXTSTAT=kextstat
 
-if [[ $($ID -u) -ne 0 ]]; then
+if [[ $($ID -u) -ne 0 ]]
+then
 set -e
 	$SUDO "$0" "$@"
 	exit
@@ -154,46 +155,54 @@ BRANCH="$5"
 ZFS_BRANCH="$6"
 SPL_BRANCH="$7"
 
-if [ x"${INSTALL_DIR:0:1}" = x"-" ] ; then
+if [ x"${INSTALL_DIR:0:1}" = x"-" ]
+then
 	$PRINTF "Install directory path cannot start with \"-\"\n"
 	exit
-elif [ x"$INSTALL_DIR" = x"/" ] ; then
+elif [ x"$INSTALL_DIR" = x"/" ]
+then
 	$PRINTF "Install directory path cannot be \"/\"\n"
 	exit
 fi
 
-if [ x"$SPL_BRANCH" = x"default" ] ; then
+if [ x"$SPL_BRANCH" = x"default" ]
+then
 	SPL_BRANCH="$BRANCH"
 fi
 
-if [ x"$ZFS_BRANCH" = x"default" ] ; then
+if [ x"$ZFS_BRANCH" = x"default" ]
+then
 	ZFS_BRANCH="$BRANCH"
 fi
 
 ZFS_DIR="$DEV_DIR"/zfs
 SPL_DIR="$DEV_DIR"/spl
 
-if [ -d "$ZFS_DIR" ] ; then
+if [ -d "$ZFS_DIR" ]
+then
 	set +e
 	CURRENT_ZFS_BRANCH="$($GIT --git-dir="$ZFS_DIR"/.git rev-parse\
 	    --abbrev-ref HEAD)"
 	set -e
 fi
 
-if [ -d "$SPL_DIR" ] ; then
+if [ -d "$SPL_DIR" ]
+then
 	set +e
 	CURRENT_SPL_BRANCH="$($GIT --git-dir="$SPL_DIR"/.git rev-parse\
 	    --abbrev-ref HEAD)"
 	set -e
 fi
 
-if [ x"$CURRENT_ZFS_BRANCH" != x"$ZFS_BRANCH" ] ; then
+if [ x"$CURRENT_ZFS_BRANCH" != x"$ZFS_BRANCH" ]
+then
 	ZFS_BRANCH_MATCHES_CURRENT_ZFS_BRANCH="no"
 else
 	ZFS_BRANCH_MATCHES_CURRENT_ZFS_BRANCH="yes"
 fi
 
-if [ x"$CURRENT_SPL_BRANCH" != x"$SPL_BRANCH" ] ; then
+if [ x"$CURRENT_SPL_BRANCH" != x"$SPL_BRANCH" ]
+then
 	SPL_BRANCH_MATCHES_CURRENT_SPL_BRANCH="no"
 else
 	SPL_BRANCH_MATCHES_CURRENT_SPL_BRANCH="yes"
@@ -299,17 +308,20 @@ do
 	esac
 done
 
-if [ "$BOTH_CONFIGURE_AND_MAKE_SPECIFIED" = "yes" ] ; then
+if [ "$BOTH_CONFIGURE_AND_MAKE_SPECIFIED" = "yes" ]
+then
 	SHOULD_MAKE="yes"
 	SHOULD_CONFIGURE="yes"
 fi
 
-if [ "$MUST_SKIP_CONFIGURE_AND_MAKE" = "yes" ] ; then
+if [ "$MUST_SKIP_CONFIGURE_AND_MAKE" = "yes" ]
+then
 	SHOULD_MAKE="no"
 	SHOULD_CONFIGURE="no"
 fi
 
-if [ "$SHOULD_LOAD" = "yes" ] ; then
+if [ "$SHOULD_LOAD" = "yes" ]
+then
 	SHOULD_UNLOAD="yes"
 	SHOULD_INSTALL="yes"
 fi
@@ -317,24 +329,29 @@ fi
 SK="$INSTALL_DIR"/spl.kext
 ZK="$INSTALL_DIR"/zfs.kext
 
-if [ "$SHOULD_SWITCH_ZFS_BRANCH" = "no" ] ; then
+if [ "$SHOULD_SWITCH_ZFS_BRANCH" = "no" ]
+then
 	ZFS_BRANCH_CHANGE_STATUS="no change"
 else
 	ZFS_BRANCH_CHANGE_STATUS="changing zfs branch to $ZFS_BRANCH"
 fi
 
-if [ "$SHOULD_SWITCH_SPL_BRANCH" = "no" ] ; then
+if [ "$SHOULD_SWITCH_SPL_BRANCH" = "no" ]
+then
 	SPL_BRANCH_CHANGE_STATUS="no change"
 else
 	SPL_BRANCH_CHANGE_STATUS="changing spl branch to $SPL_BRANCH"
 fi
 
 if [ "$SHOULD_SWITCH_ZFS_BRANCH" = "yes"\
-    -a "$SHOULD_SWITCH_SPL_BRANCH" = "yes" ] ; then
+    -a "$SHOULD_SWITCH_SPL_BRANCH" = "yes" ]
+then
 	BRANCH_CHANGE_STATUS="changing zfs and spl branches"
-elif [ "$SHOULD_SWITCH_ZFS_BRANCH" = "yes" ] ; then
+elif [ "$SHOULD_SWITCH_ZFS_BRANCH" = "yes" ]
+then
 	BRANCH_CHANGE_STATUS="changing zfs branch"
-elif [ "$SHOULD_SWITCH_SPL_BRANCH" = "yes" ] ; then
+elif [ "$SHOULD_SWITCH_SPL_BRANCH" = "yes" ]
+then
 	BRANCH_CHANGE_STATUS="changing spl branch"
 else
 	BRANCH_CHANGE_STATUS="no change"
@@ -359,12 +376,14 @@ $PRINTF "  spl kext dir = %s\n" "$SK"
 $PRINTF "  zfs kext dir = %s\n" "$ZK"
 $PRINTF "   install dir = %s\n" "$INSTALL_DIR"
 
-if [ "$RUBY_OPTION_PARSING_ERROR" = "yes" ] ; then
+if [ "$RUBY_OPTION_PARSING_ERROR" = "yes" ]
+then
 	$PRINTF "Error parsing your options. Perhaps try --help.\n"
 	exit 1
 fi
 
-if [ "$DISPLAY_HELP" = "yes" ] ; then
+if [ "$DISPLAY_HELP" = "yes" ]
+then
 	$PRINTF " %s\t\t%s\n" "Short options:" "Long options:"
 	$PRINTF "\t%s\t\t\t%s\n" '-d' '--dev-dir'
 	$PRINTF "\t%s\t\t\t%s\n" '-i' '--install-dir'
@@ -382,17 +401,21 @@ if [ "$DISPLAY_HELP" = "yes" ] ; then
 	exit 2
 fi
 
-if [ "$DRY_RUN" = "yes" ] ; then
+if [ "$DRY_RUN" = "yes" ]
+then
 	$PRINTF "Dry run. Exiting.\n"
 	exit 3
 fi
 
-if [ "$SHOULD_UNLOAD" = "yes" ] ; then
-	if [ $($KEXTSTAT -b net.lundman.zfs | wc -l) -gt 1 ] ; then
+if [ "$SHOULD_UNLOAD" = "yes" ]
+then
+	if [ $($KEXTSTAT -b net.lundman.zfs | wc -l) -gt 1 ]
+	then
 		$PRINTF "\nUnloading zfs.kext...\n"
 		$SUDO $KEXTUNLOAD -b net.lundman.zfs
 	fi
-	if [ $($KEXTSTAT -b net.lundman.spl | wc -l) -gt 1 ] ; then
+	if [ $($KEXTSTAT -b net.lundman.spl | wc -l) -gt 1 ]
+	then
 		$PRINTF "\nUnloading spl.kext...\n"
 		$SUDO $KEXTUNLOAD -b net.lundman.spl
 	fi
@@ -403,17 +426,21 @@ fi
 
 if [ "$SHOULD_CONFIGURE" = "no"\
     -a "$SHOULD_MAKE" = "no"\
-    -a "$SHOULD_LOAD" = "no" ] ; then
+    -a "$SHOULD_LOAD" = "no" ]
+then
 	exit 0
 fi
 
 if [ "$SHOULD_CONFIGURE" = "yes"\
-    -o "$SHOULD_MAKE" = "yes" ] ; then
-	if [ ! -d "$DEV_DIR" ] ; then
+    -o "$SHOULD_MAKE" = "yes" ]
+then
+	if [ ! -d "$DEV_DIR" ]
+	then
 		$SUDO $MKDIR "$DEV_DIR"
 		$SUDO $CHOWN "$OWNER":staff "$DEV_DIR"
 	fi
-	if [ ! -d "$SPL_DIR" ] ; then
+	if [ ! -d "$SPL_DIR" ]
+	then
 		$SUDO $MKDIR -p "$SPL_DIR"
 		cd "$SPL_DIR"/..
 		$SUDO $RMDIR "$SPL_DIR"
@@ -426,7 +453,8 @@ if [ "$SHOULD_CONFIGURE" = "yes"\
 		cd "$SPL_DIR"
 		$SUDO -u "$OWNER" $GIT pull
 	fi
-	if [ ! -d "$ZFS_DIR" ] ; then
+	if [ ! -d "$ZFS_DIR" ]
+	then
 		$SUDO $MKDIR -p "$ZFS_DIR"
 		cd "$ZFS_DIR"/..
 		$SUDO $RMDIR "$ZFS_DIR"
@@ -442,24 +470,28 @@ if [ "$SHOULD_CONFIGURE" = "yes"\
 fi
 
 SWITCHED_SPL_BRANCH="no"
-if [ "$SHOULD_SWITCH_SPL_BRANCH" = "yes" ] ; then
+if [ "$SHOULD_SWITCH_SPL_BRANCH" = "yes" ]
+then
 
 	CURRENT_SPL_BRANCH="$($GIT --git-dir="$DEV_DIR"/spl/.git rev-parse
 	    --abbrev-ref HEAD)"
 
 	SPL_BRANCH_MATCHES="no"
 
-	if [ x"$CURRENT_SPL_BRANCH" = x"$SPL_BRANCH" ] ; then
+	if [ x"$CURRENT_SPL_BRANCH" = x"$SPL_BRANCH" ]
+	then
 		SPL_BRANCH_MATCHES="yes"
 		$PRINTF "spl branch already matches.\n"
 	else
 		$PRINTF "spl branch does not match.\n"
 	fi
-	if [ "$SPL_BRANCH_MATCHES" = "no" ] ; then
+	if [ "$SPL_BRANCH_MATCHES" = "no" ]
+	then
 		cd "$SPL_DIR"
 		$PRINTF "Trying to switch spl branch ...\n"
 		$SUDO -u "$OWNER" $GIT checkout "$SPL_BRANCH"
-		if [ $? -eq 0 ] ; then
+		if [ $? -eq 0 ]
+		then
 			SWITCHED_SPL_BRANCH="yes"
 			$PRINTF "Switched spl branch.\n"
 		else
@@ -469,24 +501,28 @@ if [ "$SHOULD_SWITCH_SPL_BRANCH" = "yes" ] ; then
 fi
 
 SWITCHED_ZFS_BRANCH="no"
-if [ "$SHOULD_SWITCH_ZFS_BRANCH" = "yes" ] ; then
+if [ "$SHOULD_SWITCH_ZFS_BRANCH" = "yes" ]
+then
 
 	CURRENT_ZFS_BRANCH="$($GIT --git-dir="$DEV_DIR"/zfs/.git rev-parse
 	    --abbrev-ref HEAD)"
 
 	ZFS_BRANCH_MATCHES="no"
 
-	if [ x"$CURRENT_ZFS_BRANCH" = x"$ZFS_BRANCH" ] ; then
+	if [ x"$CURRENT_ZFS_BRANCH" = x"$ZFS_BRANCH" ]
+	then
 		ZFS_BRANCH_MATCHES="yes"
 		$PRINTF "zfs branch already matches.\n"
 	else
 		$PRINTF "zfs branch does not match.\n"
 	fi
-	if [ "$ZFS_BRANCH_MATCHES" = "no" ] ; then
+	if [ "$ZFS_BRANCH_MATCHES" = "no" ]
+	then
 		cd "$ZFS_DIR"
 		$PRINTF "Trying to switch zfs branch ...\n"
 		$SUDO -u "$OWNER" $GIT checkout "$ZFS_BRANCH"
-		if [ $? -eq 0 ] ; then
+		if [ $? -eq 0 ]
+		then
 			SWITCHED_ZFS_BRANCH="yes"
 			$PRINTF "Switched zfs branch.\n"
 		else
@@ -495,7 +531,8 @@ if [ "$SHOULD_SWITCH_ZFS_BRANCH" = "yes" ] ; then
 	fi
 fi
 
-if [ "$SHOULD_CONFIGURE" = "yes" ] ; then
+if [ "$SHOULD_CONFIGURE" = "yes" ]
+then
 	cd "$SPL_DIR"
 	$SUDO -u "$OWNER" $BASH_PATH "$SPL_DIR"/autogen.sh
 	$SUDO -u "$OWNER" $BASH_PATH "$SPL_DIR"/configure CC=clang CXX=clang++\
@@ -507,22 +544,26 @@ if [ "$SHOULD_CONFIGURE" = "yes" ] ; then
 	    --with-spl="$SPL_DIR"
 fi
 
-if [ "$SHOULD_MAKE" = "yes" ] ; then
+if [ "$SHOULD_MAKE" = "yes" ]
+then
 	cd "$SPL_DIR"
 	$SUDO -u "$OWNER" $MAKE -j
 	cd "$ZFS_DIR"
 	$SUDO -u "$OWNER" $MAKE -j
 fi
 
-if [ "$SHOULD_CONFIGURE" = "no" ] ; then
+if [ "$SHOULD_CONFIGURE" = "no" ]
+then
 	$PRINTF "\nDid not run configure.\n"
 fi
 
-if [ "$SHOULD_MAKE" = "no" ] ; then
+if [ "$SHOULD_MAKE" = "no" ]
+then
 	$PRINTF "\nDid not run make.\n"
 fi
 
-if [ "$SHOULD_INSTALL" = "yes" ] ; then
+if [ "$SHOULD_INSTALL" = "yes" ]
+then
 	$SUDO $RM -rf "$SK"
 	$SUDO $RM -rf "$ZK"
 	$SUDO $MKDIR -p "$INSTALL_DIR"
@@ -532,7 +573,8 @@ if [ "$SHOULD_INSTALL" = "yes" ] ; then
 	$SUDO $CHOWN -R root:wheel "$ZK"
 fi
 
-if [ "$SHOULD_LOAD" = "yes" ] ; then
+if [ "$SHOULD_LOAD" = "yes" ]
+then
 	$PRINTF "\nLoading spl.kext...\n"
 	$SUDO $KEXTLOAD "$SK"
 	$PRINTF "\nLoading zfs.kext...\n\n"
