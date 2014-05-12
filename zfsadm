@@ -27,6 +27,7 @@ export OWNER="$($LOGNAME_CMD)"
 export BRANCH="master"
 export ZFS_BRANCH="default"
 export SPL_BRANCH="default"
+export TARGET_OS_X_VERSION="native"
 
 export BASH_PATH=bash
 export CAT=cat
@@ -51,7 +52,7 @@ if [[ $($ID -u) -ne 0 ]]
 then
 set -e
 	$SUDO "$0" "$@"
-	exit
+	exit 0
 fi
 set -e
 
@@ -64,6 +65,7 @@ owner=ENV['OWNER']
 branch=ENV['BRANCH']
 zfsbranch=ENV['ZFS_BRANCH']
 splbranch=ENV['SPL_BRANCH']
+targetosxversion=ENV['TARGET_OS_X_VERSION']
 
 longopts = GetoptLong.new(
 	[ '--dev-dir', '-d' ,	GetoptLong::REQUIRED_ARGUMENT ],
@@ -77,6 +79,7 @@ longopts = GetoptLong.new(
 	[ '--kexts-only', '-k', GetoptLong::NO_ARGUMENT ],
 	[ '--configure', '-c', GetoptLong::NO_ARGUMENT ],
 	[ '--make', '-m', GetoptLong::NO_ARGUMENT ],
+	[ '--target', '-t', GetoptLong::REQUIRED_ARGUMENT ],
 	[ '--dry-run', '-n', GetoptLong::NO_ARGUMENT ],
 	[ '--help', '-h' , GetoptLong::NO_ARGUMENT ]
 )
@@ -88,11 +91,11 @@ longopts.each do |opt, arg|
 	arg = (arg.length == 0) ? nil : arg
 	case opt
 	when '--dev-dir'
-		devdir = arg ? arg : devdir
+		devdir = arg
 	when '--install-dir'
-		installdir = arg ? arg : installdir
+		installdir = arg
 	when '--owner'
-		owner = arg ? arg : owner
+		owner = arg
 	when '--branch'
 		simpleopts[:b]=1
 		branch = arg ? arg : branch
@@ -112,6 +115,9 @@ longopts.each do |opt, arg|
 		simpleopts[:c]=1
 	when '--make'
 		simpleopts[:m]=1
+	when '--target'
+		simpleopts[:t]=1
+		targetosxversion = arg
 	when '--dry-run'
 		simpleopts[:n]=1
 	when '--help'
@@ -130,7 +136,8 @@ puts "-" + simpleoptsstr + \
     " " + owner + \
     " " + branch + \
     " " + zfsbranch + \
-    " " + splbranch
+    " " + splbranch + \
+    " " + targetosxversion
 EndOfRuby
 )
 
@@ -146,6 +153,7 @@ set -e
 # $ECHO "arg6 $6"
 # $ECHO "arg7 $7"
 # $ECHO "arg8 $8"
+# $ECHO "arg9 $9"
 # _DEBUG
 
 DEV_DIR="$2"
@@ -154,15 +162,19 @@ OWNER="$4"
 BRANCH="$5"
 ZFS_BRANCH="$6"
 SPL_BRANCH="$7"
+TARGET_OS_X_VERSION="$8"
+
+ZFS_DIR="$DEV_DIR"/zfs
+SPL_DIR="$DEV_DIR"/spl
 
 if [ x"${INSTALL_DIR:0:1}" = x"-" ]
 then
 	$PRINTF "Install directory path cannot start with \"-\"\n"
-	exit
+	exit 22
 elif [ x"$INSTALL_DIR" = x"/" ]
 then
 	$PRINTF "Install directory path cannot be \"/\"\n"
-	exit
+	exit 22
 fi
 
 if [ x"$SPL_BRANCH" = x"default" ]
@@ -175,8 +187,45 @@ then
 	ZFS_BRANCH="$BRANCH"
 fi
 
-ZFS_DIR="$DEV_DIR"/zfs
-SPL_DIR="$DEV_DIR"/spl
+XCODE=/Applications/Xcode.app
+XCODE_SDKS=$XCODE/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs
+XCODE_ML_SDK="$XCODE_SDKS/MacOSX10.8.sdk"
+XCODE_MAV_SDK="$XCODE_SDKS/MacOSX10.9.sdk"
+KERNEL_FRAMEWORK_PATH=/System/Library/Frameworks/Kernel.framework
+ML_HEADERS=$XCODE_ML_SDK$KERNEL_FRAMEWORK_PATH
+MAV_HEADERS=$XCODE_MAV_SDK$KERNEL_FRAMEWORK_PATH
+
+SPL_CONFIGURE_ARRAY=(CC=clang)
+SPL_CONFIGURE_ARRAY+=(CXX=clang++)
+ZFS_CONFIGURE_ARRAY=(CC=clang)
+ZFS_CONFIGURE_ARRAY+=(CXX=clang++)
+ZFS_CONFIGURE_ARRAY+=(--prefix=/usr)
+ZFS_CONFIGURE_ARRAY+=(--sysconfdir=/etc)
+ZFS_CONFIGURE_ARRAY+=(${SPL_DIR:+--with-spl="$SPL_DIR"})
+ZFS_CONFIGURE_ARRAY+=(${INSTALL_DIR:+--with-kernel-modprefix="$INSTALL_DIR"})
+
+CFLAGS_ARRAY=(-g)
+CFLAGS_ARRAY+=(-Wno-tautological-constant-out-of-range-compare)
+
+if [ x"$TARGET_OS_X_VERSION" = x"10.8" ]
+then
+	CFLAGS_ARRAY+=(-mmacosx-version-min=10.8)
+	SPL_CONFIGURE_ARRAY+=\
+(${ML_HEADERS:+--with-kernel-headers="$ML_HEADERS"})
+	ZFS_CONFIGURE_ARRAY+=\
+(${ML_HEADERS:+--with-kernelsrc="$ML_HEADERS"})
+elif [ x"$TARGET_OS_X_VERSION" = x"10.9" ]
+then
+	CFLAGS_ARRAY+=(-mmacosx-version-min=10.9)
+	SPL_CONFIGURE_ARRAY+=\
+(${MAV_HEADERS:+--with-kernel-headers="$MAV_HEADERS"})
+	ZFS_CONFIGURE_ARRAY+=\
+(${MAV_HEADERS:+--with-kernelsrc="$MAV_HEADERS"})
+elif [ x"$TARGET_OS_X_VERSION" != x"native" ]
+then
+	$PRINTF "target should be '10.8', '10.9', or 'native'\n"
+	exit 22
+fi
 
 if [ -d "$ZFS_DIR" ]
 then
@@ -223,7 +272,7 @@ DISPLAY_HELP="no"
 RUBY_OPTION_PARSING_ERROR="no"
 SHOULD_INSTALL="no"
 
-while getopts "bzslukcmnhe" opt
+while getopts "bzslukcmtnhe" opt
 do
 	case $opt
 	in
@@ -289,6 +338,9 @@ do
 				BOTH_CONFIGURE_AND_MAKE_SPECIFIED="yes"
 			fi
 			ONE_OF_CONFIGURE_AND_MAKE_SPECIFIED="yes"
+			;;
+		t)
+			#$ECHO "-t was triggered!" >&2
 			;;
 		n)
 			#$ECHO "-n was triggered!" >&2
@@ -375,11 +427,13 @@ $PRINTF "       zfs dir = %s\n" "$ZFS_DIR"
 $PRINTF "  spl kext dir = %s\n" "$SK"
 $PRINTF "  zfs kext dir = %s\n" "$ZK"
 $PRINTF "   install dir = %s\n" "$INSTALL_DIR"
+$PRINTF "target version = %s\n" "$TARGET_OS_X_VERSION"
+$PRINTF "\n"
 
 if [ "$RUBY_OPTION_PARSING_ERROR" = "yes" ]
 then
 	$PRINTF "Error parsing your options. Perhaps try --help.\n"
-	exit 1
+	exit 22
 fi
 
 if [ "$DISPLAY_HELP" = "yes" ]
@@ -396,15 +450,16 @@ then
 	$PRINTF "\t%s\t\t\t%s\n" '-k' '--kexts-only'
 	$PRINTF "\t%s\t\t\t%s\n" '-c' '--configure'
 	$PRINTF "\t%s\t\t\t%s\n" '-m' '--make'
+	$PRINTF "\t%s\t\t\t%s\n" '-t' '--target'
 	$PRINTF "\t%s\t\t\t%s\n" '-n' '--dry-run'
 	$PRINTF "\t%s\t\t\t%s\n" '-h' '--help'
-	exit 2
+	exit 0
 fi
 
 if [ "$DRY_RUN" = "yes" ]
 then
 	$PRINTF "Dry run. Exiting.\n"
-	exit 3
+	exit 0
 fi
 
 if [ "$SHOULD_UNLOAD" = "yes" ]
@@ -533,18 +588,17 @@ fi
 
 if [ "$SHOULD_CONFIGURE" = "yes" ]
 then
+	CFLAGS_STRING=${CFLAGS_ARRAY[*]}
 	cd "$SPL_DIR"
 	$SUDO -u "$OWNER" $BASH_PATH "$SPL_DIR"/autogen.sh
-	$SUDO -u "$OWNER" $BASH_PATH "$SPL_DIR"/configure CC=clang CXX=clang++\
-	    CFLAGS="-g -Wtautological-constant-out-of-range-compare"
+	$SUDO -u "$OWNER" $BASH_PATH "$SPL_DIR"/configure\
+	    ${CFLAGS_STRING:+CFLAGS="$CFLAGS_STRING"}\
+	    ${SPL_CONFIGURE_ARRAY[@]}
 	cd "$ZFS_DIR"
 	$SUDO -u "$OWNER" $BASH_PATH "$ZFS_DIR"/autogen.sh
-	$SUDO -u "$OWNER" $BASH_PATH "$ZFS_DIR"/configure CC=clang CXX=clang++\
-	    CFLAGS="-g -Wno-tautological-constant-out-of-range-compare"\
-	    --prefix=/usr\
-	    --sysconfdir=/etc\
-	    --with-spl="$SPL_DIR"\
-	    --with-kernel-modprefix="$INSTALL_DIR"
+	$SUDO -u "$OWNER" $BASH_PATH "$ZFS_DIR"/configure\
+	    ${CFLAGS_STRING:+CFLAGS="$CFLAGS_STRING"}\
+	    ${ZFS_CONFIGURE_ARRAY[@]}
 fi
 
 if [ "$SHOULD_MAKE" = "yes" ]
