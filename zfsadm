@@ -494,7 +494,7 @@ if [ "$SHOULD_CONFIGURE" = "yes"\
 then
 	if [ ! -d "$DEV_DIR" ]
 	then
-		$SUDO $MKDIR "$DEV_DIR"
+		$SUDO $MKDIR -p "$DEV_DIR"
 		$SUDO $CHOWN "$OWNER":staff "$DEV_DIR"
 	fi
 	if [ ! -d "$SPL_DIR" ]
