@@ -25,8 +25,8 @@ export DEV_DIR="$HOME_DIR"/Developer
 export INSTALL_DIR=/System/Library/Extensions
 export OWNER="$($LOGNAME_CMD)"
 export BRANCH="master"
-export ZFS_BRANCH="default"
 export SPL_BRANCH="default"
+export ZFS_BRANCH="default"
 export TARGET_OS_X_VERSION="native"
 export PULL="on"
 export SPL_REPOSITORY="https://github.com/openzfsonosx/spl"
@@ -66,8 +66,8 @@ devdir=ENV['DEV_DIR']
 installdir=ENV['INSTALL_DIR']
 owner=ENV['OWNER']
 branch=ENV['BRANCH']
-zfsbranch=ENV['ZFS_BRANCH']
 splbranch=ENV['SPL_BRANCH']
+zfsbranch=ENV['ZFS_BRANCH']
 targetosxversion=ENV['TARGET_OS_X_VERSION']
 pull=ENV['PULL']
 
@@ -76,8 +76,8 @@ longopts = GetoptLong.new(
 	[ '--install-dir',	'-i',	GetoptLong::REQUIRED_ARGUMENT ],
 	[ '--owner',		'-o',	GetoptLong::REQUIRED_ARGUMENT ],
 	[ '--branch',		'-b',	GetoptLong::OPTIONAL_ARGUMENT],
-	[ '--zfs-branch',	'-z',	GetoptLong::OPTIONAL_ARGUMENT ],
 	[ '--spl-branch',	'-s',	GetoptLong::OPTIONAL_ARGUMENT ],
+	[ '--zfs-branch',	'-z',	GetoptLong::OPTIONAL_ARGUMENT ],
 	[ '--load',		'-l',	GetoptLong::NO_ARGUMENT ],
 	[ '--unload',		'-u',	GetoptLong::NO_ARGUMENT ],
 	[ '--kexts-only',	'-k',	GetoptLong::NO_ARGUMENT ],
@@ -104,12 +104,12 @@ longopts.each do |opt, arg|
 	when '--branch'
 		simpleopts[:b] = 1
 		branch = arg ? arg : branch
-	when '--zfs-branch'
-		simpleopts[:z] = 1
-		zfsbranch = arg ? arg : zfsbranch
 	when '--spl-branch'
 		simpleopts[:s] = 1
 		splbranch = arg ? arg : splbranch
+	when '--zfs-branch'
+		simpleopts[:z] = 1
+		zfsbranch = arg ? arg : zfsbranch
 	when '--load'
 		simpleopts[:l] = 1
 	when '--unload'
@@ -143,8 +143,8 @@ puts "-" + simpleoptsstr + \
     " " + installdir + \
     " " + owner + \
     " " + branch + \
-    " " + zfsbranch + \
     " " + splbranch + \
+    " " + zfsbranch + \
     " " + targetosxversion + \
     " " + pull
 EndOfRuby
@@ -170,13 +170,13 @@ DEV_DIR="$2"
 INSTALL_DIR="$3"
 OWNER="$4"
 BRANCH="$5"
-ZFS_BRANCH="$6"
-SPL_BRANCH="$7"
+SPL_BRANCH="$6"
+ZFS_BRANCH="$7"
 TARGET_OS_X_VERSION="$8"
 PULL="$9"
 
-ZFS_DIR="$DEV_DIR"/zfs
 SPL_DIR="$DEV_DIR"/spl
+ZFS_DIR="$DEV_DIR"/zfs
 
 if [ x"${INSTALL_DIR:0:1}" = x"-" ]
 then
@@ -247,14 +247,6 @@ then
 	exit 22
 fi
 
-if [ -d "$ZFS_DIR" ]
-then
-	set +e
-	CURRENT_ZFS_BRANCH="$($GIT --git-dir="$ZFS_DIR"/.git rev-parse\
-	    --abbrev-ref HEAD)"
-	set -e
-fi
-
 if [ -d "$SPL_DIR" ]
 then
 	set +e
@@ -263,11 +255,12 @@ then
 	set -e
 fi
 
-if [ x"$CURRENT_ZFS_BRANCH" != x"$ZFS_BRANCH" ]
+if [ -d "$ZFS_DIR" ]
 then
-	ZFS_BRANCH_MATCHES_CURRENT_ZFS_BRANCH="no"
-else
-	ZFS_BRANCH_MATCHES_CURRENT_ZFS_BRANCH="yes"
+	set +e
+	CURRENT_ZFS_BRANCH="$($GIT --git-dir="$ZFS_DIR"/.git rev-parse\
+	    --abbrev-ref HEAD)"
+	set -e
 fi
 
 if [ x"$CURRENT_SPL_BRANCH" != x"$SPL_BRANCH" ]
@@ -277,9 +270,16 @@ else
 	SPL_BRANCH_MATCHES_CURRENT_SPL_BRANCH="yes"
 fi
 
+if [ x"$CURRENT_ZFS_BRANCH" != x"$ZFS_BRANCH" ]
+then
+	ZFS_BRANCH_MATCHES_CURRENT_ZFS_BRANCH="no"
+else
+	ZFS_BRANCH_MATCHES_CURRENT_ZFS_BRANCH="yes"
+fi
+
 SHOULD_SWITCH_BRANCH="no"
-SHOULD_SWITCH_ZFS_BRANCH="no"
 SHOULD_SWITCH_SPL_BRANCH="no"
+SHOULD_SWITCH_ZFS_BRANCH="no"
 SHOULD_LOAD="no"
 SHOULD_UNLOAD="no"
 SHOULD_CONFIGURE="yes"
@@ -292,23 +292,16 @@ DISPLAY_HELP="no"
 RUBY_OPTION_PARSING_ERROR="no"
 SHOULD_INSTALL="no"
 
-while getopts "bzslukcmtpnhe" opt
+while getopts "bszlukcmtpnhe" opt
 do
 	case $opt
 	in
 		b)
 			#$ECHO "-b was triggered!" >&2
-			if [ "$ZFS_BRANCH_MATCHES_CURRENT_ZFS_BRANCH" = "no" ]
-			then
-				SHOULD_SWITCH_ZFS_BRANCH="yes"
-			fi
 			if [ "$SPL_BRANCH_MATCHES_CURRENT_SPL_BRANCH" = "no" ]
 			then
 				SHOULD_SWITCH_SPL_BRANCH="yes"
 			fi
-			;;
-		z)
-			#$ECHO "-z was triggered!" >&2
 			if [ "$ZFS_BRANCH_MATCHES_CURRENT_ZFS_BRANCH" = "no" ]
 			then
 				SHOULD_SWITCH_ZFS_BRANCH="yes"
@@ -319,6 +312,13 @@ do
 			if [ "$SPL_BRANCH_MATCHES_CURRENT_SPL_BRANCH" = "no" ]
 			then
 				SHOULD_SWITCH_SPL_BRANCH="yes"
+			fi
+			;;
+		z)
+			#$ECHO "-z was triggered!" >&2
+			if [ "$ZFS_BRANCH_MATCHES_CURRENT_ZFS_BRANCH" = "no" ]
+			then
+				SHOULD_SWITCH_ZFS_BRANCH="yes"
 			fi
 			;;
 		l)
@@ -404,13 +404,6 @@ fi
 SK="$INSTALL_DIR"/spl.kext
 ZK="$INSTALL_DIR"/zfs.kext
 
-if [ "$SHOULD_SWITCH_ZFS_BRANCH" = "no" ]
-then
-	ZFS_BRANCH_CHANGE_STATUS="no change"
-else
-	ZFS_BRANCH_CHANGE_STATUS="changing zfs branch to $ZFS_BRANCH"
-fi
-
 if [ "$SHOULD_SWITCH_SPL_BRANCH" = "no" ]
 then
 	SPL_BRANCH_CHANGE_STATUS="no change"
@@ -418,16 +411,24 @@ else
 	SPL_BRANCH_CHANGE_STATUS="changing spl branch to $SPL_BRANCH"
 fi
 
-if [ "$SHOULD_SWITCH_ZFS_BRANCH" = "yes"\
-    -a "$SHOULD_SWITCH_SPL_BRANCH" = "yes" ]
+if [ "$SHOULD_SWITCH_ZFS_BRANCH" = "no" ]
 then
-	BRANCH_CHANGE_STATUS="changing zfs and spl branches"
-elif [ "$SHOULD_SWITCH_ZFS_BRANCH" = "yes" ]
+	ZFS_BRANCH_CHANGE_STATUS="no change"
+else
+	ZFS_BRANCH_CHANGE_STATUS="changing zfs branch to $ZFS_BRANCH"
+fi
+
+if [ "$SHOULD_SWITCH_SPL_BRANCH" = "yes"\
+    -a "$SHOULD_SWITCH_ZFS_BRANCH" = "yes" ]
 then
-	BRANCH_CHANGE_STATUS="changing zfs branch"
+	BRANCH_CHANGE_STATUS="changing spl and zfs branches"
 elif [ "$SHOULD_SWITCH_SPL_BRANCH" = "yes" ]
 then
 	BRANCH_CHANGE_STATUS="changing spl branch"
+elif [ "$SHOULD_SWITCH_ZFS_BRANCH" = "yes" ]
+then
+	BRANCH_CHANGE_STATUS="changing zfs branch"
+
 else
 	BRANCH_CHANGE_STATUS="no change"
 fi
@@ -437,8 +438,8 @@ $PRINTF "       dev dir = %s\n" "$DEV_DIR"
 $PRINTF "   install dir = %s\n" "$INSTALL_DIR"
 $PRINTF "  source owner = %s\n" "$OWNER"
 $PRINTF " branch status = %s\n" "$BRANCH_CHANGE_STATUS"
-$PRINTF "    zfs branch = %s\n" "$ZFS_BRANCH_CHANGE_STATUS"
 $PRINTF "    spl branch = %s\n" "$SPL_BRANCH_CHANGE_STATUS"
+$PRINTF "    zfs branch = %s\n" "$ZFS_BRANCH_CHANGE_STATUS"
 $PRINTF "    load kexts = %s\n" "$SHOULD_LOAD"
 $PRINTF "  unload kexts = %s\n" "$SHOULD_UNLOAD"
 $PRINTF "    kexts only = %s\n" "$MUST_SKIP_CONFIGURE_AND_MAKE"
@@ -467,8 +468,8 @@ then
 	$PRINTF "\t%s\t\t\t%s\n" '-i' '--install-dir=[/System/Library/Extensions]'
 	$PRINTF "\t%s\t\t\t%s\n" '-o' '--owner=[$USER]'
 	$PRINTF "\t%s\t\t\t%s\n" '-b' '--branch=[no change]'
-	$PRINTF "\t%s\t\t\t%s\n" '-z' '--zfs-branch=[no change]'
 	$PRINTF "\t%s\t\t\t%s\n" '-s' '--spl-branch=[no change]'
+	$PRINTF "\t%s\t\t\t%s\n" '-z' '--zfs-branch=[no change]'
 	$PRINTF "\t%s\t\t\t%s\n" '-l' '--load'
 	$PRINTF "\t%s\t\t\t%s\n" '-u' '--unload'
 	$PRINTF "\t%s\t\t\t%s\n" '-k' '--kexts-only'
@@ -655,8 +656,8 @@ then
 	$SUDO $RM -rf "$SK"
 	$SUDO $RM -rf "$ZK"
 	$SUDO $MKDIR -p "$INSTALL_DIR"
-	$SUDO $CP -r "$SPL_DIR"/module/spl/spl.kext "$INSTALL_DIR"
-	$SUDO $CP -r "$ZFS_DIR"/module/zfs/zfs.kext "$INSTALL_DIR"
+	$SUDO $CP -R "$SPL_DIR"/module/spl/spl.kext "$INSTALL_DIR"
+	$SUDO $CP -R "$ZFS_DIR"/module/zfs/zfs.kext "$INSTALL_DIR"
 	$SUDO $CHOWN -R root:wheel "$SK"
 	$SUDO $CHOWN -R root:wheel "$ZK"
 fi
