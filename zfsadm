@@ -461,19 +461,19 @@ fi
 if [ "$DISPLAY_HELP" = "yes" ]
 then
 	$PRINTF " %s\t\t%s\n" "Short options:" "Long options:"
-	$PRINTF "\t%s\t\t\t%s\n" '-d' '--dev-dir'
-	$PRINTF "\t%s\t\t\t%s\n" '-i' '--install-dir'
-	$PRINTF "\t%s\t\t\t%s\n" '-o' '--owner'
-	$PRINTF "\t%s\t\t\t%s\n" '-b' '--branch'
-	$PRINTF "\t%s\t\t\t%s\n" '-z' '--zfs-branch'
-	$PRINTF "\t%s\t\t\t%s\n" '-s' '--spl-branch'
+	$PRINTF "\t%s\t\t\t%s\n" '-d' '--dev-dir=[~/Developer]'
+	$PRINTF "\t%s\t\t\t%s\n" '-i' '--install-dir=[/System/Library/Extensions]'
+	$PRINTF "\t%s\t\t\t%s\n" '-o' '--owner=[$USER]'
+	$PRINTF "\t%s\t\t\t%s\n" '-b' '--branch=[no change]'
+	$PRINTF "\t%s\t\t\t%s\n" '-z' '--zfs-branch=[no change]'
+	$PRINTF "\t%s\t\t\t%s\n" '-s' '--spl-branch=[no change]'
 	$PRINTF "\t%s\t\t\t%s\n" '-l' '--load'
 	$PRINTF "\t%s\t\t\t%s\n" '-u' '--unload'
 	$PRINTF "\t%s\t\t\t%s\n" '-k' '--kexts-only'
 	$PRINTF "\t%s\t\t\t%s\n" '-c' '--configure'
 	$PRINTF "\t%s\t\t\t%s\n" '-m' '--make'
-	$PRINTF "\t%s\t\t\t%s\n" '-t' '--target'
-	$PRINTF "\t%s\t\t\t%s\n" '-p' '--pull'
+	$PRINTF "\t%s\t\t\t%s\n" '-t' '--target=[native]'
+	$PRINTF "\t%s\t\t\t%s\n" '-p' '--pull=[on]'
 	$PRINTF "\t%s\t\t\t%s\n" '-n' '--dry-run'
 	$PRINTF "\t%s\t\t\t%s\n" '-h' '--help'
 	exit 0
