@@ -29,27 +29,38 @@ export SPL_BRANCH="default"
 export ZFS_BRANCH="default"
 export TARGET_OS_X_VERSION="native"
 export PULL="on"
-export SPL_REPOSITORY="https://github.com/openzfsonosx/spl"
-export ZFS_REPOSITORY="https://github.com/openzfsonosx/zfs"
+export SPL_REPOSITORY_URL="https://github.com/openzfsonosx/spl"
+export ZFS_REPOSITORY_URL="https://github.com/openzfsonosx/zfs"
+export SPL_REPOSITORY_DIR="$DEV_DIR"/spl
+export ZFS_REPOSITORY_DIR="$DEV_DIR"/zfs
 
 export BASH_PATH=bash
 export CAT=cat
-export CP=cp
+export CHOWN=chown
 export ECHO=echo
-export MKDIR=mkdir
-export RM=rm
-export RMDIR=rmdir
-export KEXTLOAD=kextload
-export KEXTUNLOAD=kextunload
 export GIT=git
 export GREP=grep
 export ID=id
+export KEXTLOAD=kextload
+export KEXTSTAT=kextstat
+export KEXTUNLOAD=kextunload
 export MAKE=make
+export MKDIR=mkdir
 export PRINTF=printf
+export RM=rm
+export RMDIR=rmdir
+
+if [ -e /usr/local/bin/rsync ]
+then
+export RSYNC="/usr/local/bin/rsync"
+export RSYNC_OPTIONS="-rltDcAX --fileflags --delete --itemize-changes"
+else
+export RSYNC="/usr/bin/rsync"
+export RSYNC_OPTIONS="-rltDcE --delete --itemize-changes"
+fi
+
 export RUBY=ruby
 export SUDO=sudo
-export CHOWN=chown
-export KEXTSTAT=kextstat
 
 if [[ $($ID -u) -ne 0 ]]
 then
@@ -175,8 +186,9 @@ ZFS_BRANCH="$7"
 TARGET_OS_X_VERSION="$8"
 PULL="$9"
 
-SPL_DIR="$DEV_DIR"/spl
-ZFS_DIR="$DEV_DIR"/zfs
+do_rsync() {
+	"$SUDO" "$RSYNC" $RSYNC_OPTIONS "$1" "$2"
+}
 
 if [ x"${INSTALL_DIR:0:1}" = x"-" ]
 then
@@ -215,7 +227,7 @@ ZFS_CONFIGURE_ARRAY=(CC=clang)
 ZFS_CONFIGURE_ARRAY+=(CXX=clang++)
 ZFS_CONFIGURE_ARRAY+=(--prefix=/usr)
 ZFS_CONFIGURE_ARRAY+=(--sysconfdir=/etc)
-ZFS_CONFIGURE_ARRAY+=(${SPL_DIR:+--with-spl="$SPL_DIR"})
+ZFS_CONFIGURE_ARRAY+=(${SPL_REPOSITORY_DIR:+--with-spl="$SPL_REPOSITORY_DIR"})
 ZFS_CONFIGURE_ARRAY+=(${INSTALL_DIR:+--with-kernel-modprefix="$INSTALL_DIR"})
 
 CFLAGS_ARRAY=(-g)
@@ -247,18 +259,18 @@ then
 	exit 22
 fi
 
-if [ -d "$SPL_DIR" ]
+if [ -d "$SPL_REPOSITORY_DIR" ]
 then
 	set +e
-	CURRENT_SPL_BRANCH="$($GIT --git-dir="$SPL_DIR"/.git rev-parse\
+	CURRENT_SPL_BRANCH="$($GIT --git-dir="$SPL_REPOSITORY_DIR"/.git rev-parse\
 	    --abbrev-ref HEAD)"
 	set -e
 fi
 
-if [ -d "$ZFS_DIR" ]
+if [ -d "$ZFS_REPOSITORY_DIR" ]
 then
 	set +e
-	CURRENT_ZFS_BRANCH="$($GIT --git-dir="$ZFS_DIR"/.git rev-parse\
+	CURRENT_ZFS_BRANCH="$($GIT --git-dir="$ZFS_REPOSITORY_DIR"/.git rev-parse\
 	    --abbrev-ref HEAD)"
 	set -e
 fi
@@ -403,6 +415,8 @@ fi
 
 SK="$INSTALL_DIR"/spl.kext
 ZK="$INSTALL_DIR"/zfs.kext
+SPL_KEXT_RELPATH=module/spl/spl.kext
+ZFS_KEXT_RELPATH=module/zfs/zfs.kext
 
 if [ "$SHOULD_SWITCH_SPL_BRANCH" = "no" ]
 then
@@ -446,8 +460,8 @@ $PRINTF "    kexts only = %s\n" "$MUST_SKIP_CONFIGURE_AND_MAKE"
 $PRINTF " run configure = %s\n" "$SHOULD_CONFIGURE"
 $PRINTF "      run make = %s\n" "$SHOULD_MAKE"
 $PRINTF " install kexts = %s\n" "$SHOULD_INSTALL"
-$PRINTF "       spl dir = %s\n" "$SPL_DIR"
-$PRINTF "       zfs dir = %s\n" "$ZFS_DIR"
+$PRINTF "       spl dir = %s\n" "$SPL_REPOSITORY_DIR"
+$PRINTF "       zfs dir = %s\n" "$ZFS_REPOSITORY_DIR"
 $PRINTF "  spl kext dir = %s\n" "$SK"
 $PRINTF "  zfs kext dir = %s\n" "$ZK"
 $PRINTF "   install dir = %s\n" "$INSTALL_DIR"
@@ -492,12 +506,12 @@ if [ "$SHOULD_UNLOAD" = "yes" ]
 then
 	if [ $($KEXTSTAT -b net.lundman.zfs | wc -l) -gt 1 ]
 	then
-		$ECHO "\nUnloading zfs.kext..."
+		$PRINTF "\nUnloading zfs.kext..."
 		$SUDO $KEXTUNLOAD -b net.lundman.zfs
 	fi
 	if [ $($KEXTSTAT -b net.lundman.spl | wc -l) -gt 1 ]
 	then
-		$ECHO "\nUnloading spl.kext..."
+		$PRINTF "\nUnloading spl.kext..."
 		$SUDO $KEXTUNLOAD -b net.lundman.spl
 	fi
 	set +e
@@ -520,35 +534,35 @@ then
 		$SUDO $MKDIR -p "$DEV_DIR"
 		$SUDO $CHOWN "$OWNER":staff "$DEV_DIR"
 	fi
-	if [ ! -d "$SPL_DIR" ]
+	if [ ! -d "$SPL_REPOSITORY_DIR" ]
 	then
-		$SUDO $MKDIR -p "$SPL_DIR"
-		cd "$SPL_DIR"/..
-		$SUDO $RMDIR "$SPL_DIR"
-		$SUDO $GIT clone "$SPL_REPOSITORY"
-		cd spl
+		$SUDO $MKDIR -p "$SPL_REPOSITORY_DIR"
+		cd "$SPL_REPOSITORY_DIR"/..
+		$SUDO $RMDIR "$SPL_REPOSITORY_DIR"
+		$SUDO $GIT clone "$SPL_REPOSITORY_URL" "$SPL_REPOSITORY_DIR"
+		cd "$SPL_REPOSITORY_DIR"
 		cd ..
-		$SUDO $CHOWN -R "$OWNER":staff spl
+		$SUDO $CHOWN -R "$OWNER":staff "$SPL_REPOSITORY_DIR"
 	else
-		$SUDO $CHOWN -R "$OWNER":staff "$SPL_DIR"
-		cd "$SPL_DIR"
+		$SUDO $CHOWN -R "$OWNER":staff "$SPL_REPOSITORY_DIR"
+		cd "$SPL_REPOSITORY_DIR"
 		if [ x"$PULL" = x"on" ]
 		then
 			$SUDO -u "$OWNER" $GIT pull
 		fi
 	fi
-	if [ ! -d "$ZFS_DIR" ]
+	if [ ! -d "$ZFS_REPOSITORY_DIR" ]
 	then
-		$SUDO $MKDIR -p "$ZFS_DIR"
-		cd "$ZFS_DIR"/..
-		$SUDO $RMDIR "$ZFS_DIR"
-		$SUDO $GIT clone "$ZFS_REPOSITORY"
-		cd zfs
+		$SUDO $MKDIR -p "$ZFS_REPOSITORY_DIR"
+		cd "$ZFS_REPOSITORY_DIR"/..
+		$SUDO $RMDIR "$ZFS_REPOSITORY_DIR"
+		$SUDO $GIT clone "$ZFS_REPOSITORY_URL" "$ZFS_REPOSITORY_DIR"
+		cd "$ZFS_REPOSITORY_DIR"
 		cd ..
-		$SUDO $CHOWN -R "$OWNER":staff zfs
+		$SUDO $CHOWN -R "$OWNER":staff "$ZFS_REPOSITORY_DIR"
 	else
- 		$SUDO $CHOWN -R "$OWNER":staff "$ZFS_DIR"
-		cd "$ZFS_DIR"
+		$SUDO $CHOWN -R "$OWNER":staff "$ZFS_REPOSITORY_DIR"
+		cd "$ZFS_REPOSITORY_DIR"
 		if [ x"$PULL" = x"on" ]
 		then
 			$SUDO -u "$OWNER" $GIT pull
@@ -574,7 +588,7 @@ then
 	fi
 	if [ "$SPL_BRANCH_MATCHES" = "no" ]
 	then
-		cd "$SPL_DIR"
+		cd "$SPL_REPOSITORY_DIR"
 		$ECHO "Trying to switch spl branch ..."
 		$SUDO -u "$OWNER" $GIT checkout "$SPL_BRANCH"
 		if [ $? -eq 0 ]
@@ -605,7 +619,7 @@ then
 	fi
 	if [ "$ZFS_BRANCH_MATCHES" = "no" ]
 	then
-		cd "$ZFS_DIR"
+		cd "$ZFS_REPOSITORY_DIR"
 		$ECHO "Trying to switch zfs branch ..."
 		$SUDO -u "$OWNER" $GIT checkout "$ZFS_BRANCH"
 		if [ $? -eq 0 ]
@@ -621,23 +635,23 @@ fi
 if [ "$SHOULD_CONFIGURE" = "yes" ]
 then
 	CFLAGS_STRING=${CFLAGS_ARRAY[*]}
-	cd "$SPL_DIR"
-	$SUDO -u "$OWNER" $BASH_PATH "$SPL_DIR"/autogen.sh
-	$SUDO -u "$OWNER" $BASH_PATH "$SPL_DIR"/configure\
+	cd "$SPL_REPOSITORY_DIR"
+	$SUDO -u "$OWNER" $BASH_PATH "$SPL_REPOSITORY_DIR"/autogen.sh
+	$SUDO -u "$OWNER" $BASH_PATH "$SPL_REPOSITORY_DIR"/configure\
 	    ${CFLAGS_STRING:+CFLAGS="$CFLAGS_STRING"}\
 	    ${SPL_CONFIGURE_ARRAY[@]}
-	cd "$ZFS_DIR"
-	$SUDO -u "$OWNER" $BASH_PATH "$ZFS_DIR"/autogen.sh
-	$SUDO -u "$OWNER" $BASH_PATH "$ZFS_DIR"/configure\
+	cd "$ZFS_REPOSITORY_DIR"
+	$SUDO -u "$OWNER" $BASH_PATH "$ZFS_REPOSITORY_DIR"/autogen.sh
+	$SUDO -u "$OWNER" $BASH_PATH "$ZFS_REPOSITORY_DIR"/configure\
 	    ${CFLAGS_STRING:+CFLAGS="$CFLAGS_STRING"}\
 	    ${ZFS_CONFIGURE_ARRAY[@]}
 fi
 
 if [ "$SHOULD_MAKE" = "yes" ]
 then
-	cd "$SPL_DIR"
+	cd "$SPL_REPOSITORY_DIR"
 	$SUDO -u "$OWNER" $MAKE -j
-	cd "$ZFS_DIR"
+	cd "$ZFS_REPOSITORY_DIR"
 	$SUDO -u "$OWNER" $MAKE -j
 fi
 
@@ -653,11 +667,10 @@ fi
 
 if [ "$SHOULD_INSTALL" = "yes" ]
 then
-	$SUDO $RM -rf "$SK"
-	$SUDO $RM -rf "$ZK"
-	$SUDO $MKDIR -p "$INSTALL_DIR"
-	$SUDO $CP -R "$SPL_DIR"/module/spl/spl.kext "$INSTALL_DIR"
-	$SUDO $CP -R "$ZFS_DIR"/module/zfs/zfs.kext "$INSTALL_DIR"
+	$SUDO $MKDIR -p "$SK"
+	$SUDO $MKDIR -p "$ZK"
+	do_rsync "$SPL_REPOSITORY_DIR"/"$SPL_KEXT_RELPATH"/ "$SK"/
+	do_rsync "$ZFS_REPOSITORY_DIR"/"$ZFS_KEXT_RELPATH"/ "$ZK"/
 	$SUDO $CHOWN -R root:wheel "$SK"
 	$SUDO $CHOWN -R root:wheel "$ZK"
 fi
