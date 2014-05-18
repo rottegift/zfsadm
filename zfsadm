@@ -28,6 +28,7 @@ export BRANCH="master"
 export ZFS_BRANCH="default"
 export SPL_BRANCH="default"
 export TARGET_OS_X_VERSION="native"
+export PULL="on"
 
 export BASH_PATH=bash
 export CAT=cat
@@ -66,22 +67,24 @@ branch=ENV['BRANCH']
 zfsbranch=ENV['ZFS_BRANCH']
 splbranch=ENV['SPL_BRANCH']
 targetosxversion=ENV['TARGET_OS_X_VERSION']
+pull=ENV['PULL']
 
 longopts = GetoptLong.new(
-	[ '--dev-dir', '-d' ,	GetoptLong::REQUIRED_ARGUMENT ],
-	[ '--install-dir', '-i', GetoptLong::REQUIRED_ARGUMENT ],
-	[ '--owner', '-o', GetoptLong::REQUIRED_ARGUMENT ],
-	[ '--branch', '-b', GetoptLong::OPTIONAL_ARGUMENT],
-	[ '--zfs-branch', '-z', GetoptLong::OPTIONAL_ARGUMENT ],
-	[ '--spl-branch', '-s', GetoptLong::OPTIONAL_ARGUMENT ],
-	[ '--load', '-l', GetoptLong::NO_ARGUMENT ],
-	[ '--unload', '-u', GetoptLong::NO_ARGUMENT ],
-	[ '--kexts-only', '-k', GetoptLong::NO_ARGUMENT ],
-	[ '--configure', '-c', GetoptLong::NO_ARGUMENT ],
-	[ '--make', '-m', GetoptLong::NO_ARGUMENT ],
-	[ '--target', '-t', GetoptLong::REQUIRED_ARGUMENT ],
-	[ '--dry-run', '-n', GetoptLong::NO_ARGUMENT ],
-	[ '--help', '-h' , GetoptLong::NO_ARGUMENT ]
+	[ '--dev-dir',		'-d',	GetoptLong::REQUIRED_ARGUMENT ],
+	[ '--install-dir',	'-i',	GetoptLong::REQUIRED_ARGUMENT ],
+	[ '--owner',		'-o',	GetoptLong::REQUIRED_ARGUMENT ],
+	[ '--branch',		'-b',	GetoptLong::OPTIONAL_ARGUMENT],
+	[ '--zfs-branch',	'-z',	GetoptLong::OPTIONAL_ARGUMENT ],
+	[ '--spl-branch',	'-s',	GetoptLong::OPTIONAL_ARGUMENT ],
+	[ '--load',		'-l',	GetoptLong::NO_ARGUMENT ],
+	[ '--unload',		'-u',	GetoptLong::NO_ARGUMENT ],
+	[ '--kexts-only',	'-k',	GetoptLong::NO_ARGUMENT ],
+	[ '--configure',	'-c',	GetoptLong::NO_ARGUMENT ],
+	[ '--make',		'-m',	GetoptLong::NO_ARGUMENT ],
+	[ '--target',		'-t',	GetoptLong::REQUIRED_ARGUMENT ],
+	[ '--pull',		'-p',	GetoptLong::REQUIRED_ARGUMENT ],
+	[ '--dry-run',		'-n',	GetoptLong::NO_ARGUMENT ],
+	[ '--help',		'-h',	GetoptLong::NO_ARGUMENT ]
 )
 
 simpleopts={}
@@ -97,32 +100,35 @@ longopts.each do |opt, arg|
 	when '--owner'
 		owner = arg
 	when '--branch'
-		simpleopts[:b]=1
+		simpleopts[:b] = 1
 		branch = arg ? arg : branch
 	when '--zfs-branch'
-		simpleopts[:z]=1
+		simpleopts[:z] = 1
 		zfsbranch = arg ? arg : zfsbranch
 	when '--spl-branch'
-		simpleopts[:s]=1
+		simpleopts[:s] = 1
 		splbranch = arg ? arg : splbranch
 	when '--load'
-		simpleopts[:l]=1
+		simpleopts[:l] = 1
 	when '--unload'
-		simpleopts[:u]=1
+		simpleopts[:u] = 1
 	when '--kexts-only'
-		simpleopts[:k]=1
+		simpleopts[:k] = 1
 	when '--configure'
-		simpleopts[:c]=1
+		simpleopts[:c] = 1
 	when '--make'
-		simpleopts[:m]=1
+		simpleopts[:m] = 1
 	when '--target'
-		simpleopts[:t]=1
+		simpleopts[:t] = 1
 		targetosxversion = arg
+	when '--pull'
+		simpleopts[:p] = 1
+		pull = arg
 	when '--dry-run'
-		simpleopts[:n]=1
+		simpleopts[:n] = 1
 	when '--help'
 		#RDoc::usage
-		simpleopts[:h]=1
+		simpleopts[:h] = 1
 	end
 end
 rescue => err
@@ -137,23 +143,25 @@ puts "-" + simpleoptsstr + \
     " " + branch + \
     " " + zfsbranch + \
     " " + splbranch + \
-    " " + targetosxversion
+    " " + targetosxversion + \
+    " " + pull
 EndOfRuby
 )
 
 ($ECHO set -- "$OPTS" ; $CAT <<'EndOfBash'
 set -e
 # DEBUG_
-# $ECHO "arg0 $0"
-# $ECHO "arg1 $1"
-# $ECHO "arg2 $2"
-# $ECHO "arg3 $3"
-# $ECHO "arg4 $4"
-# $ECHO "arg5 $5"
-# $ECHO "arg6 $6"
-# $ECHO "arg7 $7"
-# $ECHO "arg8 $8"
-# $ECHO "arg9 $9"
+# $ECHO "arg0 ${0}"
+# $ECHO "arg1 ${1}"
+# $ECHO "arg2 ${2}"
+# $ECHO "arg3 ${3}"
+# $ECHO "arg4 ${4}"
+# $ECHO "arg5 ${5}"
+# $ECHO "arg6 ${6}"
+# $ECHO "arg7 ${7}"
+# $ECHO "arg8 ${8}"
+# $ECHO "arg9 ${9}"
+# $ECHO "arg10 ${10}"
 # _DEBUG
 
 DEV_DIR="$2"
@@ -163,17 +171,18 @@ BRANCH="$5"
 ZFS_BRANCH="$6"
 SPL_BRANCH="$7"
 TARGET_OS_X_VERSION="$8"
+PULL="$9"
 
 ZFS_DIR="$DEV_DIR"/zfs
 SPL_DIR="$DEV_DIR"/spl
 
 if [ x"${INSTALL_DIR:0:1}" = x"-" ]
 then
-	$PRINTF "Install directory path cannot start with \"-\"\n"
+	$ECHO "Install directory path cannot start with \"-\""
 	exit 22
 elif [ x"$INSTALL_DIR" = x"/" ]
 then
-	$PRINTF "Install directory path cannot be \"/\"\n"
+	$ECHO "Install directory path cannot be \"/\""
 	exit 22
 fi
 
@@ -226,7 +235,13 @@ then
 (${MAV_HEADERS:+--with-kernelsrc="$MAV_HEADERS"})
 elif [ x"$TARGET_OS_X_VERSION" != x"native" ]
 then
-	$PRINTF "target should be '10.8', '10.9', or 'native'\n"
+	$ECHO "target should be '10.8', '10.9', or 'native'"
+	exit 22
+fi
+
+if [ x"$PULL" != x"on" -a x"$PULL" != x"off" ]
+then
+	$ECHO "pull must be either 'on' or 'off'"
 	exit 22
 fi
 
@@ -275,7 +290,7 @@ DISPLAY_HELP="no"
 RUBY_OPTION_PARSING_ERROR="no"
 SHOULD_INSTALL="no"
 
-while getopts "bzslukcmtnhe" opt
+while getopts "bzslukcmtpnhe" opt
 do
 	case $opt
 	in
@@ -344,6 +359,9 @@ do
 			;;
 		t)
 			#$ECHO "-t was triggered!" >&2
+			;;
+		p)
+			#$ECHO "-p was triggered!" >&2
 			;;
 		n)
 			#$ECHO "-n was triggered!" >&2
@@ -431,11 +449,12 @@ $PRINTF "  spl kext dir = %s\n" "$SK"
 $PRINTF "  zfs kext dir = %s\n" "$ZK"
 $PRINTF "   install dir = %s\n" "$INSTALL_DIR"
 $PRINTF "target version = %s\n" "$TARGET_OS_X_VERSION"
+$PRINTF "          pull = %s\n" "$PULL"
 $PRINTF "\n"
 
 if [ "$RUBY_OPTION_PARSING_ERROR" = "yes" ]
 then
-	$PRINTF "Error parsing your options. Perhaps try --help.\n"
+	$ECHO "Error parsing your options. Perhaps try --help."
 	exit 22
 fi
 
@@ -454,6 +473,7 @@ then
 	$PRINTF "\t%s\t\t\t%s\n" '-c' '--configure'
 	$PRINTF "\t%s\t\t\t%s\n" '-m' '--make'
 	$PRINTF "\t%s\t\t\t%s\n" '-t' '--target'
+	$PRINTF "\t%s\t\t\t%s\n" '-p' '--pull'
 	$PRINTF "\t%s\t\t\t%s\n" '-n' '--dry-run'
 	$PRINTF "\t%s\t\t\t%s\n" '-h' '--help'
 	exit 0
@@ -461,7 +481,7 @@ fi
 
 if [ "$DRY_RUN" = "yes" ]
 then
-	$PRINTF "Dry run. Exiting.\n"
+	$ECHO "Dry run. Exiting."
 	exit 0
 fi
 
@@ -469,12 +489,12 @@ if [ "$SHOULD_UNLOAD" = "yes" ]
 then
 	if [ $($KEXTSTAT -b net.lundman.zfs | wc -l) -gt 1 ]
 	then
-		$PRINTF "\nUnloading zfs.kext...\n"
+		$ECHO "\nUnloading zfs.kext..."
 		$SUDO $KEXTUNLOAD -b net.lundman.zfs
 	fi
 	if [ $($KEXTSTAT -b net.lundman.spl | wc -l) -gt 1 ]
 	then
-		$PRINTF "\nUnloading spl.kext...\n"
+		$ECHO "\nUnloading spl.kext..."
 		$SUDO $KEXTUNLOAD -b net.lundman.spl
 	fi
 	set +e
@@ -509,7 +529,10 @@ then
 	else
 		$SUDO $CHOWN -R "$OWNER":staff "$SPL_DIR"
 		cd "$SPL_DIR"
-		$SUDO -u "$OWNER" $GIT pull
+		if [ x"$PULL" = x"on" ]
+		then
+			$SUDO -u "$OWNER" $GIT pull
+		fi
 	fi
 	if [ ! -d "$ZFS_DIR" ]
 	then
@@ -523,7 +546,10 @@ then
 	else
  		$SUDO $CHOWN -R "$OWNER":staff "$ZFS_DIR"
 		cd "$ZFS_DIR"
-		$SUDO -u "$OWNER" $GIT pull
+		if [ x"$PULL" = x"on" ]
+		then
+			$SUDO -u "$OWNER" $GIT pull
+		fi
 	fi
 fi
 
@@ -539,21 +565,21 @@ then
 	if [ x"$CURRENT_SPL_BRANCH" = x"$SPL_BRANCH" ]
 	then
 		SPL_BRANCH_MATCHES="yes"
-		$PRINTF "spl branch already matches.\n"
+		$ECHO "spl branch already matches."
 	else
-		$PRINTF "spl branch does not match.\n"
+		$ECHO "spl branch does not match."
 	fi
 	if [ "$SPL_BRANCH_MATCHES" = "no" ]
 	then
 		cd "$SPL_DIR"
-		$PRINTF "Trying to switch spl branch ...\n"
+		$ECHO "Trying to switch spl branch ..."
 		$SUDO -u "$OWNER" $GIT checkout "$SPL_BRANCH"
 		if [ $? -eq 0 ]
 		then
 			SWITCHED_SPL_BRANCH="yes"
-			$PRINTF "Switched spl branch.\n"
+			$ECHO "Switched spl branch."
 		else
-			$PRINTF "Did not switch spl branch.\n"
+			$ECHO "Did not switch spl branch."
 		fi
 	fi
 fi
@@ -570,21 +596,21 @@ then
 	if [ x"$CURRENT_ZFS_BRANCH" = x"$ZFS_BRANCH" ]
 	then
 		ZFS_BRANCH_MATCHES="yes"
-		$PRINTF "zfs branch already matches.\n"
+		$ECHO "zfs branch already matches."
 	else
-		$PRINTF "zfs branch does not match.\n"
+		$ECHO "zfs branch does not match."
 	fi
 	if [ "$ZFS_BRANCH_MATCHES" = "no" ]
 	then
 		cd "$ZFS_DIR"
-		$PRINTF "Trying to switch zfs branch ...\n"
+		$ECHO "Trying to switch zfs branch ..."
 		$SUDO -u "$OWNER" $GIT checkout "$ZFS_BRANCH"
 		if [ $? -eq 0 ]
 		then
 			SWITCHED_ZFS_BRANCH="yes"
-			$PRINTF "Switched zfs branch.\n"
+			$ECHO "Switched zfs branch."
 		else
-			$PRINTF "Did not switch zfs branch.\n"
+			$ECHO "Did not switch zfs branch."
 		fi
 	fi
 fi
@@ -643,7 +669,8 @@ then
 	$SUDO $KEXTSTAT | $GREP lundman
 	set -e
 else
-	$PRINTF "\nYou need to load the kexts manually or specify -l or -k\n\n"
+	$PRINTF "\nIf you want to load the kernel extensions, "
+	$PRINTF "you must specify '-l' or '-k'\n\n"
 fi
 
 EndOfBash
