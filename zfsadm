@@ -29,6 +29,8 @@ export ZFS_BRANCH="default"
 export SPL_BRANCH="default"
 export TARGET_OS_X_VERSION="native"
 export PULL="on"
+export SPL_REPOSITORY="https://github.com/openzfsonosx/spl"
+export ZFS_REPOSITORY="https://github.com/openzfsonosx/zfs"
 
 export BASH_PATH=bash
 export CAT=cat
@@ -522,7 +524,7 @@ then
 		$SUDO $MKDIR -p "$SPL_DIR"
 		cd "$SPL_DIR"/..
 		$SUDO $RMDIR "$SPL_DIR"
-		$SUDO $GIT clone git://github.com/openzfsonosx/spl.git
+		$SUDO $GIT clone "$SPL_REPOSITORY"
 		cd spl
 		cd ..
 		$SUDO $CHOWN -R "$OWNER":staff spl
@@ -539,7 +541,7 @@ then
 		$SUDO $MKDIR -p "$ZFS_DIR"
 		cd "$ZFS_DIR"/..
 		$SUDO $RMDIR "$ZFS_DIR"
-		$SUDO $GIT clone git://github.com/openzfsonosx/zfs.git
+		$SUDO $GIT clone "$ZFS_REPOSITORY"
 		cd zfs
 		cd ..
 		$SUDO $CHOWN -R "$OWNER":staff zfs
