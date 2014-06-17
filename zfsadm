@@ -574,7 +574,7 @@ SWITCHED_SPL_BRANCH="no"
 if [ "$SHOULD_SWITCH_SPL_BRANCH" = "yes" ]
 then
 
-	CURRENT_SPL_BRANCH="$($GIT --git-dir="$DEV_DIR"/spl/.git rev-parse
+	CURRENT_SPL_BRANCH="$($GIT --git-dir="$DEV_DIR"/spl/.git rev-parse\
 	    --abbrev-ref HEAD)"
 
 	SPL_BRANCH_MATCHES="no"
@@ -605,7 +605,7 @@ SWITCHED_ZFS_BRANCH="no"
 if [ "$SHOULD_SWITCH_ZFS_BRANCH" = "yes" ]
 then
 
-	CURRENT_ZFS_BRANCH="$($GIT --git-dir="$DEV_DIR"/zfs/.git rev-parse
+	CURRENT_ZFS_BRANCH="$($GIT --git-dir="$DEV_DIR"/zfs/.git rev-parse\
 	    --abbrev-ref HEAD)"
 
 	ZFS_BRANCH_MATCHES="no"
