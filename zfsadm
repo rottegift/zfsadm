@@ -480,7 +480,7 @@ if [ "$DISPLAY_HELP" = "yes" ]
 then
 	$PRINTF " %s\t\t%s\n" "Short options:" "Long options:"
 	$PRINTF "\t%s\t\t\t%s\n" '-d' '--dev-dir=[~/Developer]'
-	$PRINTF "\t%s\t\t\t%s\n" '-i' '--install-dir=[/System/Library/Extensions]'
+	$PRINTF "\t%s\t\t\t%s\n" '-i' '--install-dir=[~/Library/Extensions]'
 	$PRINTF "\t%s\t\t\t%s\n" '-o' '--owner=[$USER]'
 	$PRINTF "\t%s\t\t\t%s\n" '-b' '--branch=[no change]'
 	$PRINTF "\t%s\t\t\t%s\n" '-s' '--spl-branch=[no change]'
