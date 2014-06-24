@@ -31,8 +31,6 @@ export TARGET_OS_X_VERSION="native"
 export PULL="on"
 export SPL_REPOSITORY_URL="https://github.com/openzfsonosx/spl"
 export ZFS_REPOSITORY_URL="https://github.com/openzfsonosx/zfs"
-export SPL_REPOSITORY_DIR="$DEV_DIR"/spl
-export ZFS_REPOSITORY_DIR="$DEV_DIR"/zfs
 
 export BASH_PATH=bash
 export CAT=cat
@@ -185,6 +183,9 @@ SPL_BRANCH="$6"
 ZFS_BRANCH="$7"
 TARGET_OS_X_VERSION="$8"
 PULL="$9"
+
+SPL_REPOSITORY_DIR="$DEV_DIR"/spl
+ZFS_REPOSITORY_DIR="$DEV_DIR"/zfs
 
 do_rsync() {
 	"$SUDO" "$RSYNC" $RSYNC_OPTIONS "$1" "$2"
