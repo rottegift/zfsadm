@@ -215,9 +215,11 @@ XCODE=/Applications/Xcode.app
 XCODE_SDKS=$XCODE/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs
 XCODE_ML_SDK="$XCODE_SDKS/MacOSX10.8.sdk"
 XCODE_MAV_SDK="$XCODE_SDKS/MacOSX10.9.sdk"
+XCODE_YOS_SDK="$XCODE_SDKS/MacOSX10.10.sdk"
 KERNEL_FRAMEWORK_PATH=/System/Library/Frameworks/Kernel.framework
 ML_HEADERS=$XCODE_ML_SDK$KERNEL_FRAMEWORK_PATH
 MAV_HEADERS=$XCODE_MAV_SDK$KERNEL_FRAMEWORK_PATH
+YOS_HEADERS=$XCODE_YOS_SDK$KERNEL_FRAMEWORK_PATH
 
 SPL_CONFIGURE_ARRAY=(CC=clang)
 SPL_CONFIGURE_ARRAY+=(CXX=clang++)
@@ -248,9 +250,16 @@ then
 (${MAV_HEADERS:+--with-kernel-headers="$MAV_HEADERS"})
 	ZFS_CONFIGURE_ARRAY+=\
 (${MAV_HEADERS:+--with-kernelsrc="$MAV_HEADERS"})
+elif [ x"$TARGET_OS_X_VERSION" = x"10.10" ]
+then
+	CFLAGS_ARRAY+=(-mmacosx-version-min=10.10)
+	SPL_CONFIGURE_ARRAY+=\
+(${YOS_HEADERS:+--with-kernel-headers="$YOS_HEADERS"})
+	ZFS_CONFIGURE_ARRAY+=\
+(${YOS_HEADERS:+--with-kernelsrc="$YOS_HEADERS"})
 elif [ x"$TARGET_OS_X_VERSION" != x"native" ]
 then
-	$ECHO "target should be '10.8', '10.9', or 'native'"
+	$ECHO "target should be '10.8', '10.9', '10.10', or 'native'"
 	exit 22
 fi
 
