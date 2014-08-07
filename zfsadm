@@ -5,12 +5,18 @@
 # 1) Run zfsadm with no options, in order to fetch and build ZFS.
 # 2) Then, you may do one of these:
 #	2a) Run 'zfsadm -k' to manually load the resulting suite, and use
-#	    'sudo ./cmd.sh zfs ...', 'sudo ./cmd.sh zpool ...', etc.
-#	2b) Install the resulting suite using 'sudo make install' in each of
-#	    their respective directories: ~/Developer/spl and ~/Developer/zfs.
-#	    Most notably, this targets '/System/Library/Extensions' and
-#	    '/usr/local/sbin'. Then you	may add /usr/local/sbin to your PATH,
-#	    and invoke the binaries directly, 'zpool ...', 'zfs ...', etc.
+#	    'sudo ./cmd.sh zfs ...', 'sudo ./cmd.sh zpool ...', etc. You will
+#	    need to run zed manually: 'sudo ./cmd.sh zed -f'
+#	2b) Install the resulting suite by running 'sudo make install' in both
+#	    ~/Developer/spl and ~/Developer/zfs. Most notably, this targets
+#		/System/Library/Extensions
+#		/System/Library/Filesystems
+#		/Library/LaunchDaemons
+#		/usr/sbin
+#		/etc/zfs
+#		/usr/libexec/zfs
+#	    Then you will be able to invoke the binaries directly, 'zpool ...',
+#	    'zfs ...', 'zdb ...', etc., and launchd will manage zed for you.
 
 set -e
 
