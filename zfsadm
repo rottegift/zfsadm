@@ -576,7 +576,7 @@ then
 		cd "$SPL_REPOSITORY_DIR"
 		if [ x"$PULL" = x"on" ]
 		then
-			$SUDO -u "$OWNER" $GIT pull --tags --ff-only
+			$SUDO -u "$OWNER" $GIT pull --tags
 		fi
 	fi
 	if [ ! -d "$ZFS_REPOSITORY_DIR" ]
@@ -593,7 +593,7 @@ then
 		cd "$ZFS_REPOSITORY_DIR"
 		if [ x"$PULL" = x"on" ]
 		then
-			$SUDO -u "$OWNER" $GIT pull --tags --ff-only
+			$SUDO -u "$OWNER" $GIT pull --tags
 		fi
 	fi
 fi
