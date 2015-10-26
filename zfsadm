@@ -9,8 +9,8 @@
 #	    need to run zed manually: 'sudo ./cmd.sh zed -f'
 #	2b) Install the resulting suite by running 'sudo make install' in both
 #	    ~/Developer/spl and ~/Developer/zfs. Most notably, this targets
-#		/System/Library/Extensions
-#		/System/Library/Filesystems
+#		/Library/Extensions or /System/Library/Extensions
+#		/Library/Filesystems or /System/Library/Filesystems
 #		/Library/LaunchDaemons
 #		/usr/local/bin
 #		/etc/zfs
@@ -228,10 +228,13 @@ XCODE_SDKS=$XCODE/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs
 XCODE_ML_SDK="$XCODE_SDKS/MacOSX10.8.sdk"
 XCODE_MAV_SDK="$XCODE_SDKS/MacOSX10.9.sdk"
 XCODE_YOS_SDK="$XCODE_SDKS/MacOSX10.10.sdk"
+XCODE_ELCAP_SDK="$XCODE_SDKS/MacOSX10.11.sdk"
+
 KERNEL_FRAMEWORK_PATH=/System/Library/Frameworks/Kernel.framework
 ML_HEADERS=$XCODE_ML_SDK$KERNEL_FRAMEWORK_PATH
 MAV_HEADERS=$XCODE_MAV_SDK$KERNEL_FRAMEWORK_PATH
 YOS_HEADERS=$XCODE_YOS_SDK$KERNEL_FRAMEWORK_PATH
+ELCAP_HEADERS=$XCODE_ELCAP_SDK$KERNEL_FRAMEWORK_PATH
 
 SPL_CONFIGURE_ARRAY=(CC=clang)
 SPL_CONFIGURE_ARRAY+=(CXX=clang++)
@@ -259,6 +262,9 @@ then
 (${ML_HEADERS:+--with-kernel-headers="$ML_HEADERS"})
 	ZFS_CONFIGURE_ARRAY+=\
 (${ML_HEADERS:+--with-kernelsrc="$ML_HEADERS"})
+	ZFS_CONFIGURE_ARRAY+=\
+(--with-filesystems-prefix=/System/Library/Filesystems)
+	ZFS_CONFIGURE_ARRAY+=(--with-mountexecdir=/sbin)
 elif [ x"$TARGET_OS_X_VERSION" = x"10.9" ]
 then
 	CFLAGS_ARRAY+=(-mmacosx-version-min=10.9)
@@ -266,6 +272,9 @@ then
 (${MAV_HEADERS:+--with-kernel-headers="$MAV_HEADERS"})
 	ZFS_CONFIGURE_ARRAY+=\
 (${MAV_HEADERS:+--with-kernelsrc="$MAV_HEADERS"})
+	ZFS_CONFIGURE_ARRAY+=\
+(--with-filesystems-prefix=/System/Library/Filesystems)
+	ZFS_CONFIGURE_ARRAY+=(--with-mountexecdir=/sbin)
 elif [ x"$TARGET_OS_X_VERSION" = x"10.10" ]
 then
 	CFLAGS_ARRAY+=(-mmacosx-version-min=10.10)
@@ -273,9 +282,23 @@ then
 (${YOS_HEADERS:+--with-kernel-headers="$YOS_HEADERS"})
 	ZFS_CONFIGURE_ARRAY+=\
 (${YOS_HEADERS:+--with-kernelsrc="$YOS_HEADERS"})
+	ZFS_CONFIGURE_ARRAY+=\
+(--with-filesystems-prefix=/System/Library/Filesystems)
+	ZFS_CONFIGURE_ARRAY+=(--with-mountexecdir=/sbin)
+elif [ x"$TARGET_OS_X_VERSION" = x"10.11" ]
+then
+	CFLAGS_ARRAY+=(-mmacosx-version-min=10.11)
+	SPL_CONFIGURE_ARRAY+=(--prefix=/usr/local)
+	ZFS_CONFIGURE_ARRAY+=(--prefix=/usr/local)
+	SPL_CONFIGURE_ARRAY+=\
+(${ELCAP_HEADERS:+--with-kernel-headers="$ELCAP_HEADERS"})
+	ZFS_CONFIGURE_ARRAY+=\
+(${ELCAP_HEADERS:+--with-kernelsrc="$ELCAP_HEADERS"})
+	ZFS_CONFIGURE_ARRAY+=\
+(--with-filesystems-prefix=/Library/Filesystems)
 elif [ x"$TARGET_OS_X_VERSION" != x"native" ]
 then
-	$ECHO "target should be '10.8', '10.9', '10.10', or 'native'"
+	$ECHO "target should be '10.8', '10.9', '10.10', '10.11', or 'native'"
 	exit 22
 fi
 
