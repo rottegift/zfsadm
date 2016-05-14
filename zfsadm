@@ -8,7 +8,7 @@
 #	    'sudo ./cmd.sh zfs ...', 'sudo ./cmd.sh zpool ...', etc. You will
 #	    need to run zed manually: 'sudo ./cmd.sh zed -f'
 #	2b) Install the resulting suite by running 'sudo make install' in both
-#	    ~/Developer/spl and ~/Developer/zfs. Most notably, this targets
+#	    ~/D2/spl and ~/D2/zfs. Most notably, this targets
 #		/Library/Extensions or /System/Library/Extensions
 #		/Library/Filesystems or /System/Library/Filesystems
 #		/Library/LaunchDaemons
