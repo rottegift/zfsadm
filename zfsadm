@@ -20,6 +20,8 @@
 
 set -e
 
+export PATH=/bin:/usr/bin:/usr/sbin:/sbin:/Applications/Server.app/Contents/ServerRoot/usr/bin:/Applications/Server.app/Contents/ServerRoot/usr/sbin:/opt/local/bin:/opt/local/sbin
+
 export DSCL=dscl
 export LOGNAME_CMD=logname
 export CUT=cut
@@ -27,14 +29,14 @@ export CUT=cut
 #defaults:
 export HOME_DIR="$($DSCL . -read /Users/"$($LOGNAME_CMD)" NFSHomeDirectory |\
     $CUT -d ' ' -f2)"
-export DEV_DIR="$HOME_DIR"/Developer
-export INSTALL_DIR=/System/Library/Extensions
+export DEV_DIR="$HOME_DIR"/D2
+export INSTALL_DIR=/Library/Extensions
 export OWNER="$($LOGNAME_CMD)"
 export BRANCH="master"
 export SPL_BRANCH="default"
 export ZFS_BRANCH="default"
 export TARGET_OS_X_VERSION="native"
-export PULL="on"
+export PULL="off"
 export SPL_REPOSITORY_URL="https://github.com/openzfsonosx/spl"
 export ZFS_REPOSITORY_URL="https://github.com/openzfsonosx/zfs"
 
@@ -55,9 +57,9 @@ export PRINTF=printf
 export RM=rm
 export RMDIR=rmdir
 
-if [ -e /usr/local/bin/rsync ]
+if [ -e /opt/local/bin/rsync ]
 then
-export RSYNC="/usr/local/bin/rsync"
+export RSYNC="/opt/local/bin/rsync"
 export RSYNC_OPTIONS="-rltDcAX --fileflags --delete --itemize-changes"
 else
 export RSYNC="/usr/bin/rsync"
@@ -239,21 +241,22 @@ ELCAP_HEADERS=$XCODE_ELCAP_SDK$KERNEL_FRAMEWORK_PATH
 SPL_CONFIGURE_ARRAY=(CC=clang)
 SPL_CONFIGURE_ARRAY+=(CXX=clang++)
 SPL_CONFIGURE_ARRAY+=(OBJCXX=clang++)
-SPL_CONFIGURE_ARRAY+=(--sbindir=/usr/local/bin)
+SPL_CONFIGURE_ARRAY+=(--sbindir=/usr/local/sbin)
 SPL_CONFIGURE_ARRAY+=(--sysconfdir=/etc)
 SPL_CONFIGURE_ARRAY+=(${INSTALL_DIR:+--with-kernel-modprefix="$INSTALL_DIR"})
 ZFS_CONFIGURE_ARRAY=(CC=clang)
 ZFS_CONFIGURE_ARRAY+=(CXX=clang++)
 ZFS_CONFIGURE_ARRAY+=(OBJCXX=clang++)
-ZFS_CONFIGURE_ARRAY+=(--sbindir=/usr/local/bin)
+ZFS_CONFIGURE_ARRAY+=(--sbindir=/usr/local/sbin)
 ZFS_CONFIGURE_ARRAY+=(--sysconfdir=/etc)
 ZFS_CONFIGURE_ARRAY+=(--localstatedir=/var)
 ZFS_CONFIGURE_ARRAY+=(${SPL_REPOSITORY_DIR:+--with-spl="$SPL_REPOSITORY_DIR"})
 ZFS_CONFIGURE_ARRAY+=(${INSTALL_DIR:+--with-kernel-modprefix="$INSTALL_DIR"})
 
 CFLAGS_ARRAY=(-g)
-CFLAGS_ARRAY+=(-Os)
-CFLAGS_ARRAY+=(-Wno-tautological-constant-out-of-range-compare)
+CFLAGS_ARRAY+=(-O2)
+CFLAGS_ARRAY+=(-march=native)
+#CFLAGS_ARRAY+=(-Wno-tautological-constant-out-of-range-compare)
 
 if [ x"$TARGET_OS_X_VERSION" = x"10.8" ]
 then
@@ -527,7 +530,7 @@ fi
 if [ "$DISPLAY_HELP" = "yes" ]
 then
 	$PRINTF " %s\t\t%s\n" "Short options:" "Long options:"
-	$PRINTF "\t%s\t\t\t%s\n" '-d' '--dev-dir=[~/Developer]'
+	$PRINTF "\t%s\t\t\t%s\n" '-d' '--dev-dir=[~/D2]'
 	$PRINTF "\t%s\t\t\t%s\n" '-i' '--install-dir=[~/Library/Extensions]'
 	$PRINTF "\t%s\t\t\t%s\n" '-o' '--owner=[$USER]'
 	$PRINTF "\t%s\t\t\t%s\n" '-b' '--branch=[no change]'
