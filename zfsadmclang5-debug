@@ -25,9 +25,10 @@ export PATH=/opt/local/bin:/bin:/usr/bin:/usr/sbin:/sbin:/Applications/Server.ap
 export DSCL=dscl
 export LOGNAME_CMD=logname
 export CUT=cut
+export SED=sed
 
 #defaults:
-export HOME_DIR="$($DSCL . -read /Users/"$($LOGNAME_CMD)" NFSHomeDirectory |\
+export HOME_DIR="$($DSCL /Search -read /Users/"$($LOGNAME_CMD)" NFSHomeDirectory | $SED 1q | \
     $CUT -d ' ' -f2)"
 export DEV_DIR="$HOME_DIR"/D2
 export INSTALL_DIR=/Library/Extensions
