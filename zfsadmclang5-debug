@@ -258,7 +258,7 @@ SPL_CONFIGURE_ARRAY+=(--enable-boot --enable-debug)
 ZFS_CONFIGURE_ARRAY+=(--enable-boot --enable-debug)
 
 CFLAGS_ARRAY=(-g)
-CFLAGS_ARRAY+=(-Oz)
+CFLAGS_ARRAY+=(-O3 -flto)
 CFLAGS_ARRAY+=(-march=native)
 #CFLAGS_ARRAY+=(-Wno-tautological-constant-out-of-range-compare)
 
