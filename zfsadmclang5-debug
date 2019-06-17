@@ -261,7 +261,7 @@ CFLAGS_ARRAY=(-g)
 CFLAGS_ARRAY+=(-O3)
 CFLAGS_ARRAY+=(-march=native)
 #CFLAGS_ARRAY+=(-Wno-tautological-constant-out-of-range-compare)
-LIBTOOL=/opt/homebrew/bin/glibtool
+LIBTOOL=/usr/bin/libtool
 
 if [ x"$TARGET_OS_X_VERSION" = x"10.8" ]
 then
